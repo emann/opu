@@ -1,10 +1,8 @@
 [package]
-name = "rust-template"
+name = "opu"
 version = "0.1.0"
-authors = ["Michael Bryant <mbryant@triaxtec.com>"]
+authors = ["Ethan Mann <emanndev7@gmail.com"]
 edition = "2018"
-# Remove this if the project will be public/open source
-publish = false
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

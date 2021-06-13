@@ -21,8 +21,8 @@ jobs:
             - name: Upload artifact
               uses: actions/upload-artifact@v2
               with:
-                  name: rust-template-linux
-                  path: target/release/rust-template
+                  name: opu-linux
+                  path: target/release/opu
     windows:
         name: Windows Build
         runs-on: windows-latest
@@ -41,5 +41,5 @@ jobs:
             - name: Upload artifact
               uses: actions/upload-artifact@v2
               with:
-                  name: rust-template-windows.exe
-                  path: target/release/rust-template.exe
+                  name: opu-windows.exe
+                  path: target/release/opu.exe
