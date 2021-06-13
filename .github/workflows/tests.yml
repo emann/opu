@@ -1,0 +1,56 @@
+name: Checks and Tests (Commit)
+on: push
+defaults:
+    run:
+        shell: sh
+jobs:
+    deny-check:
+        # checks advisories, licenses, and banned crates
+        name: Deny Check
+        runs-on: ubuntu-20.04
+        steps:
+            - uses: actions/checkout@v2
+            - uses: triaxtec/github-actions/rust/deny-check@main
+              name: deny check
+    check:
+        name: Check
+        runs-on: ubuntu-20.04
+        container: rust:alpine
+        steps:
+            - uses: actions/checkout@v2
+            - uses: triaxtec/github-actions/rust/makefile@main
+              name: make check
+              with:
+                  makefile_targets: check
+    clippy:
+        name: Clippy
+        runs-on: ubuntu-20.04
+        container: rust:alpine
+        steps:
+            - uses: actions/checkout@v2
+            - uses: triaxtec/github-actions/rust/makefile@main
+              name: make clippy
+              with:
+                  rustup_components: clippy
+                  makefile_targets: clippy
+    test:
+        name: Test
+        runs-on: ubuntu-20.04
+        container: rust:alpine
+        steps:
+            - uses: actions/checkout@v2
+            - uses: triaxtec/github-actions/rust/makefile@main
+              name: make test
+              with:
+                  makefile_targets: test
+    fmt:
+        name: Fmt Check
+        runs-on: ubuntu-20.04
+        container: rust:alpine
+        steps:
+            - uses: actions/checkout@v2
+            - uses: triaxtec/github-actions/rust/makefile@main
+              name: make fmt
+              with:
+                  rustup_components: rustfmt
+                  makefile_targets: check-fmt
