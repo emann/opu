@@ -1,9 +1,10 @@
-use color_eyre::eyre::{ensure, eyre, Result};
 use std::borrow::Borrow;
 use std::ffi::OsStr;
 use std::fs::read_dir;
 use std::path::{Path, PathBuf};
 use std::slice::Iter;
+
+use color_eyre::eyre::{ensure, eyre, Result};
 use sysinfo::{DiskExt, ProcessExt, SystemExt};
 
 const OP1_DIRECTORIES: [&'static str; 4] = ["album", "drum", "synth", "tape"];

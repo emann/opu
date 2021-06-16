@@ -2,25 +2,25 @@
 #![allow(clippy::multiple_crate_versions)]
 #![forbid(unsafe_code)]
 
+use std::{env, thread, time};
+
+use clap::{crate_authors, crate_description, crate_version, App, Arg, ArgGroup};
+use color_eyre::eyre::{ContextCompat, Result};
+use console::style;
+use dialoguer::console::Term;
+use indicatif::{ProgressBar, ProgressStyle};
+
+use functions::FUNCTIONS;
+use prompt::{get_input, select};
+
+use crate::op1::OP1Image;
+
 mod backup;
 mod file_utils;
 mod functions;
 mod load;
 mod op1;
 mod prompt;
-
-use crate::op1::OP1Image;
-use clap::{crate_authors, crate_description, crate_version, App, Arg};
-use color_eyre::eyre::{ContextCompat, Result, WrapErr};
-use console::{style, Attribute};
-use dialoguer::console::Term;
-use functions::FUNCTIONS;
-use indicatif::{ProgressBar, ProgressStyle};
-use prompt::{get_input, select};
-use std::borrow::Borrow;
-use std::path::PathBuf;
-use std::{env, fs, thread, time};
-use sysinfo::{DiskExt, ProcessExt, SystemExt};
 
 // TODO: Config.toml, backup dir
 
@@ -31,7 +31,20 @@ fn main() -> Result<()> {
         .version(crate_version!())
         .author(crate_authors!())
         .about(crate_description!())
-        .arg(Arg::with_name("FUNCTION").help("the function").index(1))
+        .subcommand(
+            App::new("backup")
+                .about("Saves a copy of the files on the OP-1 to be restored at a later date.")
+                .arg(Arg::with_name("name").help("What to call the backup")),
+        )
+        .subcommand(
+            App::new("load")
+                .about("Loads a previously saved backup onto the OP-1")
+                .arg(Arg::with_name("name").help(
+                    "The name of the backup stored in OPU's configured storage path to be loaded",
+                ))
+                .arg(Arg::with_name("path").help("The path to the backup to be loaded"))
+                .group(ArgGroup::with_name("name_or_path_to_backup").args(&["name", "path"])),
+        )
         .get_matches();
 
     let connected_op1 = match OP1Image::find_connected_op1() {
@@ -66,11 +79,9 @@ fn main() -> Result<()> {
         .bright()
     ))?;
 
-    let preselected_function = matches.value_of("FUNCTION");
-
     let functions = FUNCTIONS.to_vec();
 
-    let function = match preselected_function {
+    let function = match matches.subcommand_name() {
         None => select(functions, "Select a function"),
         Some(name) => functions
             .into_iter()
@@ -79,6 +90,6 @@ fn main() -> Result<()> {
     }
     .expect("Unable to determine function");
 
-    // TODO: Collect additional args (proj name, select stuff?)
+    // TODO: Collect required args that are missing
     (function.function)(connected_op1)
 }

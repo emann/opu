@@ -1,11 +1,12 @@
+use std::env;
+use std::path::{Path, PathBuf};
+
+use color_eyre::eyre::WrapErr;
 use color_eyre::Result;
 
 use crate::file_utils::copy_dir_with_progress_bar;
 use crate::op1::OP1Image;
 use crate::prompt::get_input;
-use color_eyre::eyre::WrapErr;
-use std::env;
-use std::path::{Path, PathBuf};
 
 pub(crate) fn backup(op1: OP1Image) -> Result<()> {
     let backup_name = get_input("What do you want the backup to be called?")?;
