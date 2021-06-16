@@ -12,6 +12,8 @@ mod prompt;
 use crate::op1::OP1Image;
 use clap::{crate_authors, crate_description, crate_version, App, Arg};
 use color_eyre::eyre::{ContextCompat, Result, WrapErr};
+use console::{style, Attribute};
+use dialoguer::console::Term;
 use functions::FUNCTIONS;
 use indicatif::{ProgressBar, ProgressStyle};
 use prompt::{get_input, select};
@@ -50,7 +52,19 @@ fn main() -> Result<()> {
         }
     };
 
-    println!("Found OP-1 @{:?}", connected_op1.root_dir);
+    // TODO: Clean this up, probably by using the ColorfulTheme directly
+    let term = Term::stdout();
+    term.write_line(&format!(
+        "{}",
+        style(format!(
+            "{} Found OP-1 @{:?}",
+            style("✔".to_string()).for_stderr().green(),
+            connected_op1.root_dir
+        ))
+        .for_stderr()
+        .bold()
+        .bright()
+    ))?;
 
     let preselected_function = matches.value_of("FUNCTION");
 

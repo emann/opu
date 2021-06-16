@@ -8,13 +8,10 @@ use std::env;
 use std::path::{Path, PathBuf};
 
 pub(crate) fn backup(op1: OP1Image) -> Result<()> {
-    let s = get_input("What do you want the backup to be called?")?;
+    let backup_name = get_input("What do you want the backup to be called?")?;
 
-    let dest = env::current_dir()?.join(s);
-    println!("Saving to {:?}", dest);
-
-    for subdir in op1.subdirs().iter() {
-        copy_dir_with_progress_bar(subdir, dest.join(subdir.file_name().unwrap()))?;
-    }
+    let dest = env::current_dir()?.join(backup_name);
+    copy_dir_with_progress_bar(&op1.subdirs(), &dest)?;
+    println!("Backup saved to{:?}", dest);
     Ok(())
 }

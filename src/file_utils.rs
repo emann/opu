@@ -1,8 +1,7 @@
 use crate::op1::OP1Image;
-use fs_extra::dir::{
-    copy_with_progress, create_all, get_size, CopyOptions, TransitProcess, TransitProcessResult,
-};
+use fs_extra::dir::{copy_with_progress, create_all, get_size, CopyOptions, TransitProcessResult};
 use fs_extra::error::Result;
+use fs_extra::{copy_items_with_progress, TransitProcess};
 use indicatif::{ProgressBar, ProgressStyle};
 use std::fmt::Debug;
 use std::fs;
@@ -23,12 +22,11 @@ fn progress_callback(pb: ProgressBar) -> impl Fn(TransitProcess) -> TransitProce
     }
 }
 
-pub(crate) fn copy_dir_with_progress_bar<P, Q>(src: P, dest: Q) -> Result<u64>
+pub(crate) fn copy_dir_with_progress_bar<P, Q>(src: &[P], dest: Q) -> Result<u64>
 where
     P: AsRef<Path> + Debug,
     Q: AsRef<Path> + Debug,
 {
-    println!("Copying {:?} to {:?}", src, dest);
     create_all(&dest, true)?;
     let pb = ProgressBar::new(0);
     pb.set_style(
@@ -38,7 +36,6 @@ where
 
     let mut options = CopyOptions::new();
     options.copy_inside = true;
-    // options.buffer_size = 1;
 
-    copy_with_progress(src, dest, &options, progress_callback(pb))
+    copy_items_with_progress(src, dest, &options, progress_callback(pb))
 }
