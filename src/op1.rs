@@ -36,12 +36,12 @@ impl Op1 {
     pub(crate) fn find_connected_op1() -> Option<Op1> {
         let mut system = sysinfo::System::new_all();
         system.refresh_all();
-        system
-            .get_disks()
-            .iter()
-            .map(|disk| Op1::from_mount_point(disk.get_mount_point()))
-            .filter_map(|op1| op1.ok())
-            .next()
+        for disk in system.get_disks().iter() {
+            if let Ok(op1) = Op1::from_mount_point(disk.get_mount_point()) {
+                return Some(op1);
+            }
+        }
+        None
     }
 
     pub(crate) fn subdirs(&self) -> Vec<PathBuf> {

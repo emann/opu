@@ -5,9 +5,9 @@ use color_eyre::eyre::WrapErr;
 use color_eyre::Result;
 
 use crate::file_utils::copy_dir_with_progress_bar;
+use crate::metadata::Metadata;
 use crate::op1::Op1;
-use crate::prompt::{confirm, unwrap_or_prompt_input, prompt_input};
-use crate::metadata::
+use crate::prompt::{confirm, prompt_input, unwrap_or_prompt_input};
 use clap::ArgMatches;
 use dialoguer::Confirm;
 
@@ -19,8 +19,7 @@ pub(crate) fn collect_args_and_run(arg_matches: Option<&ArgMatches>, op1: Op1) -
 
     // TODO: Collect tempo & mixer settings
 
-
-    let dest = env::current_dir()?.join("temp").join(name);
+    let dest = env::current_dir()?.join("temp").join(project_name);
     copy_dir_with_progress_bar(&op1.subdirs(), &dest)?;
     println!("Project saved to{:?}", dest);
     Ok(())

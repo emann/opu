@@ -1,4 +1,3 @@
-use crate::op1::OP1Directories;
 use chrono::serde as chrono_serde;
 use chrono::{DateTime, Local};
 use serde::{Deserialize, Serialize};
@@ -51,7 +50,7 @@ struct TempoSettings {
 }
 
 #[derive(Serialize, Deserialize)]
-struct Metadata {
+pub(crate) struct Metadata {
     project_name: String,
     created: DateTime<Local>,
     last_saved: DateTime<Local>,

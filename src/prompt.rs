@@ -6,8 +6,11 @@ use console::Term;
 use dialoguer::theme::ColorfulTheme;
 use dialoguer::{Confirm, Input, Select};
 
-pub(crate) fn confirm(prompt: &str) -> bool {
-    Confirm::new().with_prompt(prompt).interact()?
+pub(crate) fn confirm(prompt: &str) -> Result<bool> {
+    Confirm::new()
+        .with_prompt(prompt)
+        .interact()
+        .wrap_err("Failed to get confirmation from user")
 }
 
 pub(crate) fn prompt_input(prompt: &str) -> Result<String> {
@@ -46,7 +49,7 @@ pub(crate) fn unwrap_and_validate_or_prompt_select<T: Display>(
                     let item = items.remove(index);
                     Ok(item)
                 }
-                None => Err(eyre!("No option selected")),
+                None => Err(eyre!("Failed to select option")),
             }
         }
     }
