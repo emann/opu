@@ -4,7 +4,25 @@ use clap::ArgMatches;
 use color_eyre::eyre::{eyre, ContextCompat, Result, WrapErr};
 use console::Term;
 use dialoguer::theme::ColorfulTheme;
-use dialoguer::{Input, Select};
+use dialoguer::{Confirm, Input, Select};
+
+pub(crate) fn confirm(prompt: &str) -> bool {
+    Confirm::new().with_prompt(prompt).interact()?
+}
+
+pub(crate) fn prompt_input(prompt: &str) -> Result<String> {
+    Input::with_theme(&ColorfulTheme::default())
+        .with_prompt(prompt)
+        .interact_text()
+        .wrap_err("Failed to get input from user")
+}
+
+pub(crate) fn unwrap_or_prompt_input(value: Option<&str>, prompt: &str) -> Result<String> {
+    match value {
+        Some(val) => Ok(val.to_string()),
+        None => prompt_input(prompt),
+    }
+}
 
 pub(crate) fn unwrap_and_validate_or_prompt_select<T: Display>(
     value: Option<&str>,
@@ -31,15 +49,5 @@ pub(crate) fn unwrap_and_validate_or_prompt_select<T: Display>(
                 None => Err(eyre!("No option selected")),
             }
         }
-    }
-}
-
-pub(crate) fn unwrap_or_prompt_input(value: Option<&str>, prompt: &str) -> Result<String> {
-    match value {
-        Some(val) => Ok(val.to_string()),
-        None => Input::with_theme(&ColorfulTheme::default())
-            .with_prompt(prompt)
-            .interact_text()
-            .wrap_err("Failed to get input from user"),
     }
 }

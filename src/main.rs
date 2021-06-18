@@ -13,16 +13,16 @@ use indicatif::{ProgressBar, ProgressStyle};
 use commands::COMMANDS;
 use prompt::{unwrap_and_validate_or_prompt_select, unwrap_or_prompt_input};
 
-use crate::op1::OP1Image;
+use crate::op1::Op1;
 use crate::static_files::StaticFiles;
 
 mod commands;
+mod create;
 mod file_utils;
 mod load;
 mod metadata;
 mod op1;
 mod prompt;
-mod save;
 mod static_files;
 
 // TODO: Config.toml, backup dir
@@ -35,7 +35,7 @@ fn main() -> Result<()> {
         .author(crate_authors!())
         .about(crate_description!())
         .subcommand(
-            App::new("save")
+            App::new("create")  //TODO: fix about and help
                 .about("Saves a copy of the files on the OP-1 to be restored at a later date.")
                 .arg(Arg::with_name("name").help("What to call the project")),
         )
@@ -50,7 +50,7 @@ fn main() -> Result<()> {
         )
         .get_matches();
 
-    let connected_op1 = match OP1Image::find_connected_op1() {
+    let connected_op1 = match Op1::find_connected_op1() {
         Some(op1) => op1,
         None => {
             let pb = ProgressBar::new(1000);
@@ -60,11 +60,11 @@ fn main() -> Result<()> {
             );
             pb.enable_steady_tick(10);
 
-            while let None = OP1Image::find_connected_op1() {
+            while let None = Op1::find_connected_op1() {
                 thread::sleep(time::Duration::from_millis(250));
             }
             pb.finish();
-            OP1Image::find_connected_op1().unwrap()
+            Op1::find_connected_op1().unwrap()
         }
     };
 
@@ -75,7 +75,7 @@ fn main() -> Result<()> {
         style(format!(
             "{} Found OP-1 @{:?}",
             style("✔".to_string()).for_stderr().green(),
-            connected_op1.root_dir
+            connected_op1.mount_point
         ))
         .for_stderr()
         .bold()

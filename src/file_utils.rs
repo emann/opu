@@ -7,7 +7,7 @@ use fs_extra::error::Result;
 use fs_extra::{copy_items_with_progress, TransitProcess};
 use indicatif::{ProgressBar, ProgressStyle};
 
-use crate::op1::OP1Image;
+use crate::op1::Op1;
 
 fn progress_callback(pb: ProgressBar) -> impl Fn(TransitProcess) -> TransitProcessResult {
     move |tp: TransitProcess| -> TransitProcessResult {

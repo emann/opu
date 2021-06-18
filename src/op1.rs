@@ -9,20 +9,13 @@ use sysinfo::{DiskExt, ProcessExt, SystemExt};
 
 const OP1_DIRECTORIES: [&'static str; 4] = ["album", "drum", "synth", "tape"];
 
-pub(crate) enum OP1Directories {
-    Album,
-    Drum,
-    Synth,
-    Tape,
+pub(crate) struct Op1 {
+    pub mount_point: PathBuf,
 }
 
-pub(crate) struct OP1Image {
-    root_dir: PathBuf,
-}
-
-impl OP1Image {
-    pub(crate) fn from_path(root_dir: &Path) -> Result<Self> {
-        let child_dir_names: Vec<PathBuf> = root_dir
+impl Op1 {
+    pub(crate) fn from_mount_point(mount_point: &Path) -> Result<Self> {
+        let child_dir_names: Vec<PathBuf> = mount_point
             .read_dir()?
             .filter_map(|d| d.ok())
             .map(|dir| dir.path())
@@ -31,28 +24,28 @@ impl OP1Image {
         ensure!(
             OP1_DIRECTORIES
                 .iter()
-                .all(|&s| child_dir_names.contains(&root_dir.join(&s.to_string()))),
+                .all(|&s| child_dir_names.contains(&mount_point.join(&s.to_string()))),
             "The directory provided does not contain all of the necessary child directories"
         );
 
-        Ok(OP1Image {
-            root_dir: root_dir.into(),
+        Ok(Op1 {
+            mount_point: mount_point.into(),
         })
     }
 
-    pub(crate) fn find_connected_op1() -> Option<OP1Image> {
+    pub(crate) fn find_connected_op1() -> Option<Op1> {
         let mut system = sysinfo::System::new_all();
         system.refresh_all();
         system
             .get_disks()
             .iter()
-            .map(|disk| OP1Image::from_path(disk.get_mount_point()))
+            .map(|disk| Op1::from_mount_point(disk.get_mount_point()))
             .filter_map(|op1| op1.ok())
             .next()
     }
 
     pub(crate) fn subdirs(&self) -> Vec<PathBuf> {
-        self.root_dir
+        self.mount_point
             .read_dir()
             .unwrap()
             .filter_map(|d| d.ok())

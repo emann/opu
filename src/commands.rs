@@ -1,14 +1,14 @@
 use color_eyre::eyre::Result;
 
+use crate::create;
 use crate::load;
-use crate::op1::OP1Image;
-use crate::save;
+use crate::op1::Op1;
 use clap::ArgMatches;
 
 pub(crate) static COMMANDS: &[Command] = &[
     Command {
-        name: "save",
-        collect_args_and_run: save::collect_args_and_run,
+        name: "create",
+        collect_args_and_run: create::collect_args_and_run,
     },
     Command {
         name: "load",
@@ -16,7 +16,7 @@ pub(crate) static COMMANDS: &[Command] = &[
     },
 ];
 
-type OPUCommand = fn(arg_matches: Option<&ArgMatches>, op1: OP1Image) -> Result<()>;
+type OPUCommand = fn(arg_matches: Option<&ArgMatches>, op1: Op1) -> Result<()>;
 
 #[derive(Clone)]
 pub(crate) struct Command<'a> {
@@ -28,6 +28,6 @@ pub(crate) struct Command<'a> {
 
 impl std::fmt::Display for Command<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", &self.name.rep)
+        write!(f, "{}", &self.name)
     }
 }
