@@ -1,3 +1,3 @@
-# OPU - OP-1 Utility
+# OPU - Operator Utilities
 
-A set of utilities for the OP-1
+A set of utilities for the OP-1 (and in the future, pocket operators).

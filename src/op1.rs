@@ -9,8 +9,15 @@ use sysinfo::{DiskExt, ProcessExt, SystemExt};
 
 const OP1_DIRECTORIES: [&'static str; 4] = ["album", "drum", "synth", "tape"];
 
+pub(crate) enum OP1Directories {
+    Album,
+    Drum,
+    Synth,
+    Tape,
+}
+
 pub(crate) struct OP1Image {
-    pub root_dir: PathBuf,
+    root_dir: PathBuf,
 }
 
 impl OP1Image {

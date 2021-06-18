@@ -10,17 +10,20 @@ use console::style;
 use dialoguer::console::Term;
 use indicatif::{ProgressBar, ProgressStyle};
 
-use functions::FUNCTIONS;
-use prompt::{get_input, select};
+use commands::COMMANDS;
+use prompt::{unwrap_and_validate_or_prompt_select, unwrap_or_prompt_input};
 
 use crate::op1::OP1Image;
+use crate::static_files::StaticFiles;
 
-mod backup;
+mod commands;
 mod file_utils;
-mod functions;
 mod load;
+mod metadata;
 mod op1;
 mod prompt;
+mod save;
+mod static_files;
 
 // TODO: Config.toml, backup dir
 
@@ -32,9 +35,9 @@ fn main() -> Result<()> {
         .author(crate_authors!())
         .about(crate_description!())
         .subcommand(
-            App::new("backup")
+            App::new("save")
                 .about("Saves a copy of the files on the OP-1 to be restored at a later date.")
-                .arg(Arg::with_name("name").help("What to call the backup")),
+                .arg(Arg::with_name("name").help("What to call the project")),
         )
         .subcommand(
             App::new("load")
@@ -79,17 +82,14 @@ fn main() -> Result<()> {
         .bright()
     ))?;
 
-    let functions = FUNCTIONS.to_vec();
+    let commands = COMMANDS.to_vec();
 
-    let function = match matches.subcommand_name() {
-        None => select(functions, "Select a function"),
-        Some(name) => functions
-            .into_iter()
-            .find(|w| w.name == name)
-            .wrap_err_with(|| format!("Unknown function: {}", name)),
-    }
-    .expect("Unable to determine function");
+    let command = unwrap_and_validate_or_prompt_select(
+        matches.subcommand_name(),
+        commands,
+        "Select a command",
+    )
+    .expect("Unable to determine command");
 
-    // TODO: Collect required args that are missing
-    (function.function)(connected_op1)
+    (command.collect_args_and_run)(matches.subcommand_matches(command.name), connected_op1)
 }
