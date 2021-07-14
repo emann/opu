@@ -1,17 +1,43 @@
+use core::mem::size_of;
+use std::borrow::{Borrow, Cow};
+use std::convert::TryInto;
+use std::fs::{read, File};
+use std::io::{Read, Write};
+use std::ops::Range;
+use std::path::{Path, PathBuf};
+
 use chrono::serde as chrono_serde;
 use chrono::{DateTime, Local};
+use color_eyre::eyre::WrapErr;
+use color_eyre::Report;
+use serde::__private::TryFrom;
 use serde::{Deserialize, Serialize};
+use thiserror::Error;
 use toml::value::Datetime;
 
-const METADATA_START_ADDRESS: u32 = 0x3c400;
+use crate::prompt::prompt_input;
+use crate::static_files::StaticFiles;
+use std::io;
 
-#[derive(Default, Serialize, Deserialize)]
+const METADATA_FILENAME: &str = "opu_metadata.aif";
+const METADATA_DIR: &str = "synth/_opu";
+const SIZE_LABEL_BASE_ADDRESS: usize = 0x39490;
+const SIZE_OF_SIZE_LABEL: usize = 8;
+const METADATA_BASE_ADDRESS: usize = SIZE_LABEL_BASE_ADDRESS + SIZE_OF_SIZE_LABEL;
+
+#[derive(Error, Debug)]
+pub(crate) enum MetadataError {
+    #[error("Unable to find metadata file)")]
+    FileNotFound,
+}
+
+#[derive(Default, Serialize, Deserialize, Clone)]
 struct ChannelMixSettings {
     level: u8, // 0-99
     pan: i8,   // Estimate -100 (all the way left) to 100 (all the way to the right)
 }
 
-#[derive(Default, Serialize, Deserialize)]
+#[derive(Default, Serialize, Deserialize, Clone)]
 struct EQSettings {
     low: u8,  // Estimate 0-100
     mid: u8,  // Estimate 0-100
@@ -19,7 +45,7 @@ struct EQSettings {
 }
 
 // TODO: (maybe?) Create an enum of the effects with anonymous structs with better named fields
-#[derive(Default, Serialize, Deserialize)]
+#[derive(Default, Serialize, Deserialize, Clone)]
 struct MasterEffectSettings {
     blue: u8,   // Estimate 0-100
     green: u8,  // Estimate 0-100
@@ -27,7 +53,7 @@ struct MasterEffectSettings {
     orange: u8, // Estimate 0-100
 }
 
-#[derive(Default, Serialize, Deserialize)]
+#[derive(Default, Serialize, Deserialize, Clone)]
 struct MasterOutSettings {
     left_balance: u8,  // 0-99
     right_balance: u8, // 0-99
@@ -35,23 +61,23 @@ struct MasterOutSettings {
     release: u8,       // 0-300 (I think)
 }
 
-#[derive(Default, Serialize, Deserialize)]
-struct MixerSettings {
+#[derive(Default, Serialize, Deserialize, Clone)]
+pub(crate) struct MixerSettings {
     per_channel_mix_settings: [ChannelMixSettings; 4],
     eq_settings: EQSettings,
     master_effect_settings: MasterEffectSettings,
     master_out_settings: MasterOutSettings,
 }
 
-#[derive(Default, Serialize, Deserialize)]
-struct TempoSettings {
+#[derive(Default, Serialize, Deserialize, Clone)]
+pub(crate) struct TempoSettings {
     bpm: f32,
     tape_speed: i8,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub(crate) struct Metadata {
-    project_name: String,
+    pub(crate) project_name: String,
     created: DateTime<Local>,
     last_saved: DateTime<Local>,
     tempo_settings: TempoSettings,
@@ -59,7 +85,7 @@ pub(crate) struct Metadata {
 }
 
 impl Metadata {
-    fn new(
+    pub(crate) fn new(
         project_name: String,
         tempo_settings: TempoSettings,
         mixer_settings: MixerSettings,
@@ -72,5 +98,67 @@ impl Metadata {
             tempo_settings,
             mixer_settings,
         }
+    }
+
+    pub(crate) fn from_user_input() -> Metadata {
+        // TODO: Collect tempo & mixer settings
+        Metadata::new(
+            prompt_input("Enter a name for the project: ").unwrap(),
+            Default::default(),
+            Default::default(),
+        )
+    }
+
+    pub(crate) fn get_file_path(project_dir: PathBuf) -> PathBuf {
+        return project_dir.join(METADATA_DIR).join(METADATA_FILENAME);
+    }
+}
+
+impl TryFrom<PathBuf> for Metadata {
+    type Error = Report;
+
+    fn try_from(mut path: PathBuf) -> Result<Self, Self::Error> {
+        if !path.exists() {
+            return Err(Report::new(MetadataError::FileNotFound));
+        }
+        let file_bytes = read(path)?;
+
+        let metadata_size = usize::from_be_bytes(
+            file_bytes[SIZE_LABEL_BASE_ADDRESS..METADATA_BASE_ADDRESS].try_into()?,
+        );
+
+        let metadata_str = std::str::from_utf8(
+            &file_bytes[METADATA_BASE_ADDRESS..(METADATA_BASE_ADDRESS + metadata_size)],
+        )?;
+        let metadata: Metadata = serde_json::from_str(metadata_str)?;
+        Ok(metadata)
+    }
+}
+
+impl Into<Vec<u8>> for Metadata {
+    fn into(self) -> Vec<u8> {
+        let serialized_metadata = serde_json::to_string(&self).unwrap();
+        let size_of_serialized_metadata = serialized_metadata.len();
+
+        // Load the base metadata file into memory
+        let mut metadata_file_bytes: Vec<u8> = match StaticFiles::get(METADATA_FILENAME).unwrap() {
+            Cow::Borrowed(v) => v.to_owned(),
+            Cow::Owned(v) => v,
+        };
+
+        // Inserting the size label
+        metadata_file_bytes.splice(
+            SIZE_LABEL_BASE_ADDRESS..(SIZE_LABEL_BASE_ADDRESS + size_of::<usize>()),
+            // Only splice in the number of bytes required to store the size label to save space
+            size_of_serialized_metadata.to_be_bytes().to_vec(),
+        );
+
+        // Inserting the metadata itself
+        metadata_file_bytes.splice(
+            METADATA_BASE_ADDRESS..(METADATA_BASE_ADDRESS + size_of_serialized_metadata),
+            serialized_metadata.into_bytes(),
+        );
+
+        metadata_file_bytes
     }
 }

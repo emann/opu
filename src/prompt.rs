@@ -27,6 +27,22 @@ pub(crate) fn unwrap_or_prompt_input(value: Option<&str>, prompt: &str) -> Resul
     }
 }
 
+pub(crate) fn prompt_select<T: Display>(mut items: Vec<T>, prompt: &str) -> Result<T> {
+    let selection = Select::with_theme(&ColorfulTheme::default())
+        .items(&items)
+        .default(0)
+        .with_prompt(prompt)
+        .interact_on_opt(&Term::stdout())?;
+
+    match selection {
+        Some(index) => {
+            let item = items.remove(index);
+            Ok(item)
+        }
+        None => Err(eyre!("Failed to select option")),
+    }
+}
+
 pub(crate) fn unwrap_and_validate_or_prompt_select<T: Display>(
     value: Option<&str>,
     mut items: Vec<T>,
@@ -37,20 +53,6 @@ pub(crate) fn unwrap_and_validate_or_prompt_select<T: Display>(
             .into_iter()
             .find(|v| v.to_string() == val)
             .ok_or(eyre!("Invalid value: {}", val)),
-        None => {
-            let selection = Select::with_theme(&ColorfulTheme::default())
-                .items(&items)
-                .default(0)
-                .with_prompt(prompt)
-                .interact_on_opt(&Term::stdout())?;
-
-            match selection {
-                Some(index) => {
-                    let item = items.remove(index);
-                    Ok(item)
-                }
-                None => Err(eyre!("Failed to select option")),
-            }
-        }
+        None => prompt_select(items, prompt),
     }
 }

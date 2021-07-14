@@ -7,9 +7,11 @@ use fs_extra::error::Result;
 use fs_extra::{copy_items_with_progress, TransitProcess};
 use indicatif::{ProgressBar, ProgressStyle};
 
-use crate::op1::Op1;
+use crate::op1::OP1;
 
-fn progress_callback(pb: ProgressBar) -> impl Fn(TransitProcess) -> TransitProcessResult {
+pub(crate) fn progress_callback(
+    pb: ProgressBar,
+) -> impl FnMut(TransitProcess) -> TransitProcessResult {
     move |tp: TransitProcess| -> TransitProcessResult {
         if pb.length() == 0 {
             pb.set_length(tp.total_bytes);
@@ -20,15 +22,16 @@ fn progress_callback(pb: ProgressBar) -> impl Fn(TransitProcess) -> TransitProce
         } else {
             pb.finish();
         }
-        TransitProcessResult::ContinueOrAbort
+        TransitProcessResult::OverwriteAll
     }
 }
 
-pub(crate) fn copy_dir_with_progress_bar<P, Q>(src: &[P], dest: Q) -> Result<u64>
+pub(crate) fn copy_items_with_progress_bar<P, Q>(src: &[P], dest: Q) -> Result<u64>
 where
     P: AsRef<Path> + Debug,
     Q: AsRef<Path> + Debug,
 {
+    println!("{:?} {:?}", src, dest);
     create_all(&dest, true)?;
     let pb = ProgressBar::new(0);
     pb.set_style(
@@ -38,6 +41,7 @@ where
 
     let mut options = CopyOptions::new();
     options.copy_inside = true;
+    options.overwrite = true;
 
     copy_items_with_progress(src, dest, &options, progress_callback(pb))
 }
