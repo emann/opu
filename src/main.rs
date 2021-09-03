@@ -34,6 +34,7 @@ mod project;
 mod prompt;
 mod save;
 mod static_files;
+mod patch_library;
 
 // TODO: Config.toml, backup dir
 // TODO: Daemon to automatically open when op-1 detected
