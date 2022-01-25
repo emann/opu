@@ -1,4 +1,3 @@
-use color_eyre::Result;
 use platform_dirs::AppDirs;
 use std::path::PathBuf;
 

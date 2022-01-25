@@ -1,5 +1,5 @@
 [package]
-name = "opu"
+name = "core"
 version = "0.1.0"
 authors = ["Ethan Mann <emanndev7@gmail.com"]
 edition = "2018"

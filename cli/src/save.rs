@@ -4,11 +4,11 @@ use std::path::{Path, PathBuf};
 use color_eyre::eyre::WrapErr;
 use color_eyre::Result;
 
-use crate::dirs::get_projects_dir;
-use crate::file_utils::copy_items_with_progress_bar;
-use crate::metadata::Metadata;
-use crate::op1::OP1;
-use crate::project::Project;
+use core::dirs::get_projects_dir;
+use core::file_utils::copy_items_with_progress_bar;
+use core::metadata::Metadata;
+use core::op1::OP1;
+use core::project::Project;
 use crate::prompt::{confirm, prompt_input, unwrap_or_prompt_input};
 use clap::ArgMatches;
 use dialoguer::Confirm;
@@ -20,7 +20,7 @@ use dialoguer::Confirm;
 */
 
 // TODO: Warn about overwrite
-pub(crate) fn collect_args_and_run(arg_matches: Option<&ArgMatches>, op1: OP1) -> Result<()> {
+pub fn collect_args_and_run(arg_matches: Option<&ArgMatches>, op1: OP1) -> Result<()> {
     // let project_name = unwrap_or_prompt_input(
     //     arg_matches.and_then(|am| am.value_of("name")),
     //     "Project Name: ",

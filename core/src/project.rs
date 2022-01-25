@@ -2,8 +2,6 @@ use crate::dirs::get_projects_dir;
 use crate::file_utils::copy_items_with_progress_bar;
 use crate::metadata::{Metadata, MetadataError};
 use crate::op1::{OP1Subdirs, OP1, OP1_DIRECTORIES};
-use color_eyre::eyre::{eyre, WrapErr};
-use color_eyre::Report;
 use fs_extra::dir::create_all;
 use std::convert::TryFrom;
 use std::fmt::Display;
@@ -60,7 +58,7 @@ impl TryFrom<PathBuf> for Project {
 
     fn try_from(mut path: PathBuf) -> Result<Self, Self::Error> {
         if !path.exists() {
-            return Err(eyre!("Path doesn't exist: {:?}", path));
+            // return Err(eyre!("Path doesn't exist: {:?}", path));
         }
 
         let metadata = Metadata::try_from(Metadata::get_file_path(path.clone()))?;

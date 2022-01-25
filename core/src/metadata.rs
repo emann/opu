@@ -8,14 +8,11 @@ use std::path::{Path, PathBuf};
 
 use chrono::serde as chrono_serde;
 use chrono::{DateTime, Local};
-use color_eyre::eyre::WrapErr;
-use color_eyre::Report;
 use serde::__private::TryFrom;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use toml::value::Datetime;
 
-use crate::prompt::prompt_input;
 use crate::static_files::StaticFiles;
 use std::io;
 
@@ -100,14 +97,14 @@ impl Metadata {
         }
     }
 
-    pub(crate) fn from_user_input() -> Metadata {
-        // TODO: Collect tempo & mixer settings
-        Metadata::new(
-            prompt_input("Enter a name for the project: ").unwrap(),
-            Default::default(),
-            Default::default(),
-        )
-    }
+    // pub(crate) fn from_user_input() -> Metadata {
+    //     // TODO: Collect tempo & mixer settings
+    //     Metadata::new(
+    //         prompt_input("Enter a name for the project: ").unwrap(),
+    //         Default::default(),
+    //         Default::default(),
+    //     )
+    // }
 
     pub(crate) fn get_file_path(project_dir: PathBuf) -> PathBuf {
         return project_dir.join(METADATA_DIR).join(METADATA_FILENAME);

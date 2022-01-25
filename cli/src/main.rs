@@ -2,39 +2,30 @@
 #![allow(clippy::multiple_crate_versions)]
 #![forbid(unsafe_code)]
 
-use std::fs::{read, File};
-use std::path::Path;
 use std::{env, thread, time};
+use std::fs::{File, read};
+use std::path::Path;
 
-use clap::{crate_authors, crate_description, crate_version, App, Arg, ArgGroup};
+use clap::{App, Arg, ArgGroup};
 use color_eyre::eyre::{ContextCompat, Result};
 use console::style;
 use dialoguer::console::Term;
-use fs_extra::copy_items_with_progress;
-use fs_extra::dir::{copy_with_progress, CopyOptions, TransitProcessResult};
 use indicatif::{ProgressBar, ProgressStyle};
-use serde::__private::TryFrom;
 
 use commands::COMMANDS;
+use core::dirs::get_projects_dir;
+use core::file_utils::{copy_items_with_progress_bar, progress_callback};
+use core::metadata::Metadata;
+use core::op1::OP1;
+use core::static_files::StaticFiles;
+use fs_extra::dir::{copy_with_progress, CopyOptions, TransitProcessResult};
 use prompt::{unwrap_and_validate_or_prompt_select, unwrap_or_prompt_input};
-
-use crate::dirs::get_projects_dir;
-use crate::file_utils::{copy_items_with_progress_bar, progress_callback};
-use crate::metadata::Metadata;
-use crate::op1::OP1;
-use crate::static_files::StaticFiles;
+use serde::__private::TryFrom;
 
 mod commands;
-mod dirs;
-mod file_utils;
 mod load;
-mod metadata;
-mod op1;
-mod project;
 mod prompt;
-mod save;
-mod static_files;
-mod patch_library;
+pub mod save;
 
 // TODO: Config.toml, backup dir
 // TODO: Daemon to automatically open when op-1 detected
@@ -49,16 +40,16 @@ fn main() -> Result<()> {
         .subcommand(
             App::new("save")
                 .about("Saves a copy of the files on the OP-1 to be restored at a later date.")
-                .arg(Arg::with_name("name").help("What to call the project")),
+                .arg(Arg::new("name").help("What to call the project")),
         )
         .subcommand(
             App::new("load")
                 .about("Loads a previously saved backup onto the OP-1")
-                .arg(Arg::with_name("name").help(
+                .arg(Arg::new("name").help(
                     "The name of the backup stored in OPU's configured storage path to be loaded",
                 ))
-                .arg(Arg::with_name("path").help("The path to the backup to be loaded"))
-                .group(ArgGroup::with_name("name_or_path_to_backup").args(&["name", "path"])),
+                .arg(Arg::new("path").help("The path to the backup to be loaded"))
+                .group(ArgGroup::new("name_or_path_to_backup").args(&["name", "path"])),
         )
         .get_matches();
 

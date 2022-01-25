@@ -4,10 +4,8 @@ use std::fs::read_dir;
 use std::path::{Path, PathBuf};
 use std::slice::Iter;
 
-use crate::file_utils::copy_items_with_progress_bar;
 use crate::metadata::Metadata;
 use crate::project::Project;
-use color_eyre::eyre::{ensure, eyre, Result};
 use fs_extra::dir::remove;
 use fs_extra::remove_items;
 use sysinfo::{DiskExt, ProcessExt, SystemExt};
@@ -19,19 +17,20 @@ pub(crate) struct OP1 {
 }
 
 impl OP1 {
-    pub(crate) fn from_mount_point(mount_point: &Path) -> Result<Self> {
+    pub(crate) fn from_mount_point(mount_point: &Path) {
         let child_dir_names: Vec<PathBuf> = mount_point
             .read_dir()?
             .filter_map(|d| d.ok())
             .map(|dir| dir.path())
             .collect();
 
-        ensure!(
-            OP1_DIRECTORIES
-                .iter()
-                .all(|&s| child_dir_names.contains(&mount_point.join(&s.to_string()))),
-            "The directory provided does not contain all of the necessary child directories"
-        );
+        // TODO: Improve project/op1 detection
+        // ensure!(
+        //     OP1_DIRECTORIES
+        //         .iter()
+        //         .all(|&s| child_dir_names.contains(&mount_point.join(&s.to_string()))),
+        //     "The directory provided does not contain all of the necessary child directories"
+        // );
 
         Ok(OP1 {
             mount_point: mount_point.into(),
@@ -50,7 +49,7 @@ impl OP1 {
     }
 
     // TODO: Some error handling
-    pub(crate) fn load(&self, project: Project) -> Result<()> {
+    pub(crate) fn load(&self, project: Project) {
         // remove_items(&self.subdirs());
         // println!("removed!");
 

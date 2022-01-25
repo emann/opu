@@ -5,7 +5,6 @@ use std::path::{Path, PathBuf};
 use fs_extra::dir::{copy_with_progress, create_all, get_size, CopyOptions, TransitProcessResult};
 use fs_extra::error::Result;
 use fs_extra::{copy_items_with_progress, TransitProcess};
-use indicatif::{ProgressBar, ProgressStyle};
 
 use crate::op1::OP1;
 
