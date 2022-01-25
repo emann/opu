@@ -1,0 +1,16 @@
+[package]
+name = "opu"
+version = "0.1.0"
+authors = ["Ethan Mann <emanndev7@gmail.com"]
+edition = "2018"
+
+[dependencies]
+toml = "0.5.8"
+sysinfo = "0.18.2"
+fs_extra = "1.2.0"
+rust-embed = {version = "5.9.0", features = ["debug-embed"] }
+chrono = {version = "0.4.19", features = ["serde"] }
+serde = { version = "1.0.126", features = ["derive"] }
+serde_json = "1.0"
+platform-dirs = "0.3.0"
+thiserror = "1.0.25"
