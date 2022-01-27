@@ -2,9 +2,9 @@
 #![allow(clippy::multiple_crate_versions)]
 #![forbid(unsafe_code)]
 
-use std::{env, thread, time};
-use std::fs::{File, read};
+use std::fs::{read, File};
 use std::path::Path;
+use std::{env, thread, time};
 
 use clap::{App, Arg, ArgGroup};
 use color_eyre::eyre::{ContextCompat, Result};

@@ -1,31 +1,36 @@
 use core::mem::size_of;
-use std::borrow::{Borrow, Cow};
+use std::borrow::Cow;
 use std::convert::TryInto;
-use std::fs::{read, File};
-use std::io::{Read, Write};
-use std::ops::Range;
-use std::path::{Path, PathBuf};
+use std::fs::read;
+use std::path::PathBuf;
 
-use chrono::serde as chrono_serde;
 use chrono::{DateTime, Local};
 use serde::__private::TryFrom;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
-use toml::value::Datetime;
 
+use crate::op1::dirs::OP1Dirs;
 use crate::static_files::StaticFiles;
-use std::io;
+use std::ops::RangeInclusive;
 
 const METADATA_FILENAME: &str = "opu_metadata.aif";
 const METADATA_DIR: &str = "synth/_opu";
 const SIZE_LABEL_BASE_ADDRESS: usize = 0x39490;
 const SIZE_OF_SIZE_LABEL: usize = 8;
 const METADATA_BASE_ADDRESS: usize = SIZE_LABEL_BASE_ADDRESS + SIZE_OF_SIZE_LABEL;
+const SIZE_LABEL_BYTES_RANGE: RangeInclusive<usize> =
+    SIZE_LABEL_BASE_ADDRESS..=(METADATA_BASE_ADDRESS - 1);
 
 #[derive(Error, Debug)]
-pub(crate) enum MetadataError {
-    #[error("Unable to find metadata file)")]
-    FileNotFound,
+pub(crate) enum Error {
+    #[error("Unable to find metadata file at {0}")]
+    FileNotFound(PathBuf),
+    #[error("Failed to read metadata file {0}")]
+    FailedToRead(#[from] std::io::Error),
+    #[error("Failed to read metadata file {0}")]
+    FailedToDecodeUTF(#[from] std::str::Utf8Error),
+    #[error("Failed to read metadata file {0}")]
+    FailedToParseJSON(#[from] serde_json::Error),
 }
 
 #[derive(Default, Serialize, Deserialize, Clone)]
@@ -106,22 +111,36 @@ impl Metadata {
     //     )
     // }
 
-    pub(crate) fn get_file_path(project_dir: PathBuf) -> PathBuf {
+    // TODO: Use AsRef<Path>
+    pub fn get_file_path(project_dir: PathBuf) -> PathBuf {
         return project_dir.join(METADATA_DIR).join(METADATA_FILENAME);
     }
 }
 
-impl TryFrom<PathBuf> for Metadata {
-    type Error = Report;
+impl TryFrom<&OP1Dirs> for Metadata {
+    type Error = Error;
 
-    fn try_from(mut path: PathBuf) -> Result<Self, Self::Error> {
-        if !path.exists() {
-            return Err(Report::new(MetadataError::FileNotFound));
-        }
-        let file_bytes = read(path)?;
+    fn try_from(op1_dirs: &OP1Dirs) -> Result<Self, Self::Error> {
+        let metadata_file = Metadata::get_file_path(op1_dirs.parent_dir.clone());
+        Metadata::try_from(metadata_file)
+    }
+}
+
+impl TryFrom<PathBuf> for Metadata {
+    type Error = Error;
+
+    fn try_from(parent_dir: PathBuf) -> Result<Self, Self::Error> {
+        let metadata_file = Metadata::get_file_path(parent_dir);
+        metadata_file
+            .try_exists()
+            .map_err(|_| Error::FileNotFound(metadata_file.clone()))?;
+
+        let file_bytes = read(metadata_file)?;
 
         let metadata_size = usize::from_be_bytes(
-            file_bytes[SIZE_LABEL_BASE_ADDRESS..METADATA_BASE_ADDRESS].try_into()?,
+            file_bytes[SIZE_LABEL_BYTES_RANGE]
+                .try_into()
+                .expect("Should be able to get a usize"),
         );
 
         let metadata_str = std::str::from_utf8(

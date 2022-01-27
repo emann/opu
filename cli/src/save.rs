@@ -4,13 +4,13 @@ use std::path::{Path, PathBuf};
 use color_eyre::eyre::WrapErr;
 use color_eyre::Result;
 
+use crate::prompt::{confirm, prompt_input, unwrap_or_prompt_input};
+use clap::ArgMatches;
 use core::dirs::get_projects_dir;
 use core::file_utils::copy_items_with_progress_bar;
 use core::metadata::Metadata;
 use core::op1::OP1;
 use core::project::Project;
-use crate::prompt::{confirm, prompt_input, unwrap_or_prompt_input};
-use clap::ArgMatches;
 use dialoguer::Confirm;
 
 /*
