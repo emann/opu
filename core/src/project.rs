@@ -1,5 +1,6 @@
 use crate::metadata::{Error as MetadataError, Metadata};
 use crate::op1::dirs::{Error as OP1DirsError, OP1Dirs};
+use chrono::Local;
 use std::convert::TryFrom;
 use std::fmt::Debug;
 use std::path::{Path, PathBuf};
@@ -30,11 +31,10 @@ impl Project {
     //         .collect()
     // }
     //
-    pub fn save_to<T: AsRef<Path> + Debug>(&self, dest: T) {
+    pub fn save_to<T: AsRef<Path> + Debug>(&mut self, dest: T) {
         // TODO: Implement
-        // Update time
-        // If dest path != root path, save all
-        // Else just save metadata
+        self.metadata.last_saved = Local::now();
+        self.metadata.save
         println!("Project saved to {:?}", dest);
     }
 }

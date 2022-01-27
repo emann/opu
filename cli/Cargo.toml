@@ -13,3 +13,4 @@ console = "0.14.1"
 dialoguer = "0.8.0"
 core = {path = "../core"}
 indicatif = "0.16.2"
+fs_extra = "1.2.0"

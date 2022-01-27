@@ -1,7 +1,6 @@
 use std::fmt::Display;
 
-use clap::ArgMatches;
-use color_eyre::eyre::{eyre, ContextCompat, Result, WrapErr};
+use color_eyre::eyre::{eyre, Result, WrapErr};
 use console::Term;
 use dialoguer::theme::ColorfulTheme;
 use dialoguer::{Confirm, Input, Select};
@@ -45,7 +44,7 @@ pub fn prompt_select<T: Display>(mut items: Vec<T>, prompt: &str) -> Result<T> {
 
 pub fn unwrap_and_validate_or_prompt_select<T: Display>(
     value: Option<&str>,
-    mut items: Vec<T>,
+    items: Vec<T>,
     prompt: &str,
 ) -> Result<T> {
     match value {

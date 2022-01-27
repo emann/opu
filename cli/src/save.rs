@@ -1,17 +1,13 @@
-use std::convert::TryFrom;
-use std::env;
-use std::path::{Path, PathBuf};
-
-use color_eyre::eyre::WrapErr;
 use color_eyre::Result;
 
-use crate::prompt::{confirm, prompt_input, unwrap_or_prompt_input};
+use crate::prompt::unwrap_or_prompt_input;
+use crate::utils::progress_callback;
 use clap::ArgMatches;
 use core::metadata::{Metadata, MixerSettings, TempoSettings};
 use core::op1::dirs::OP1Dirs;
 use core::op1::OP1;
 use core::project::Project;
-use dialoguer::Confirm;
+use indicatif::{ProgressBar, ProgressStyle};
 
 pub fn collect_args_and_run(arg_matches: Option<&ArgMatches>, mut op1: OP1) -> Result<()> {
     let name_arg = arg_matches.and_then(|am| am.value_of("name"));
@@ -37,6 +33,11 @@ pub fn collect_args_and_run(arg_matches: Option<&ArgMatches>, mut op1: OP1) -> R
         }
     }
 
-    op1.save_project();
+    let pb = ProgressBar::new(0);
+    pb.set_style(
+        ProgressStyle::default_bar()
+            .template("{spinner:.green} [{bar:.cyan/blue}] {bytes}/{total_bytes}"),
+    );
+    op1.save_project(progress_callback(pb));
     Ok(())
 }

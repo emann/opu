@@ -1,10 +1,9 @@
-let pb = ProgressBar::new(0);
-pb.set_style(
-ProgressStyle::default_bar()
-.template("{spinner:.green} [{bar:.cyan/blue}] {bytes}/{total_bytes}"),
-);
+use fs_extra::dir::{TransitProcess, TransitProcessResult};
+use indicatif::ProgressBar;
 
-pub fn progress_callback(pb: ProgressBar) -> impl FnMut(TransitProcess) -> TransitProcessResult {
+pub(crate) fn progress_callback(
+    pb: ProgressBar,
+) -> impl FnMut(TransitProcess) -> TransitProcessResult {
     move |tp: TransitProcess| -> TransitProcessResult {
         if pb.length() == 0 {
             pb.set_length(tp.total_bytes);

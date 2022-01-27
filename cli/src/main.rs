@@ -2,26 +2,23 @@
 #![allow(clippy::multiple_crate_versions)]
 #![forbid(unsafe_code)]
 
-use std::fs::{read, File};
-use std::path::Path;
-use std::{env, thread, time};
+use std::{thread, time};
 
 use clap::{App, Arg, ArgGroup};
-use color_eyre::eyre::{ContextCompat, Result};
+use color_eyre::eyre::Result;
 use console::style;
 use dialoguer::console::Term;
 use indicatif::{ProgressBar, ProgressStyle};
 
 use commands::COMMANDS;
-use core::metadata::Metadata;
 use core::op1::OP1;
-use core::static_files::StaticFiles;
-use prompt::{unwrap_and_validate_or_prompt_select, unwrap_or_prompt_input};
+use prompt::unwrap_and_validate_or_prompt_select;
 
 mod commands;
 // mod load;
 mod prompt;
 mod save;
+mod utils;
 
 // TODO: Config.toml, backup dir
 // TODO: Daemon to automatically open when op-1 detected
@@ -73,7 +70,7 @@ fn main() -> Result<()> {
         style(format!(
             "{} Found OP-1 @{:?}",
             style("✔".to_string()).for_stderr().green(),
-            connected_op1.op1_dirs.parent_dir
+            connected_op1.mount_point()
         ))
         .for_stderr()
         .bold()

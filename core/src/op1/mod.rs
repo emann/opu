@@ -3,8 +3,11 @@ pub mod dirs;
 
 use std::path::PathBuf;
 
+use crate::dirs::get_dirs;
+use crate::file_utils::copy_dir_contents_with_progress;
 use crate::op1::dirs::{Error as OP1DirsError, OP1Dirs};
 use crate::project::Project;
+use fs_extra::dir::{TransitProcess, TransitProcessResult};
 use std::convert::TryFrom;
 use sysinfo::{DiskExt, SystemExt};
 
@@ -24,14 +27,26 @@ impl OP1 {
             .next()
     }
 
+    pub fn mount_point(&self) -> PathBuf {
+        self.op1_dirs.parent_dir.clone()
+    }
+
+    // TODO: Handle errors
     /// Save project to device and to projects dir
-    pub fn save_project(&self) {
-        println!("{:?}", self.op1_dirs.album);
+    pub fn save_project<F>(&self, progress_handler: F)
+    where
+        F: FnMut(TransitProcess) -> TransitProcessResult,
+    {
         self.project
             .as_ref()
             .expect("No project to save (eventually this will be an error)")
             .save_to(&self.op1_dirs.parent_dir);
-        // TODO: Copy contents to projects dir
+
+        let project_dir = get_dirs()
+            .projects
+            .join(&self.project.as_ref().unwrap().metadata.project_name);
+
+        copy_dir_contents_with_progress(self.mount_point(), project_dir, progress_handler);
     }
 
     // TODO: Some error handling

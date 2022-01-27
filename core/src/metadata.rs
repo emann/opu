@@ -81,7 +81,7 @@ pub struct TempoSettings {
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Metadata {
     pub project_name: String,
-    last_saved: DateTime<Local>,
+    pub last_saved: DateTime<Local>,
     tempo_settings: TempoSettings,
     mixer_settings: MixerSettings,
     created: DateTime<Local>,

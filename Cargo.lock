@@ -120,6 +120,7 @@ dependencies = [
  "console 0.14.1",
  "core",
  "dialoguer",
+ "fs_extra",
  "indicatif",
 ]
 
