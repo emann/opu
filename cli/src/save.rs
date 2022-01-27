@@ -19,9 +19,8 @@ pub fn collect_args_and_run(arg_matches: Option<&ArgMatches>, mut op1: OP1) -> R
             arg_matches.and_then(|am| am.value_of("name")),
             "Project Name: ",
         )?;
-        println!("Got project name: {}", project_name);
 
-        if op1.project.is_none() {
+        if let None = op1.project {
             let metadata = Metadata::new(
                 project_name,
                 TempoSettings::default(),
@@ -31,12 +30,11 @@ pub fn collect_args_and_run(arg_matches: Option<&ArgMatches>, mut op1: OP1) -> R
                 metadata,
                 op1_dirs: OP1Dirs::from(&op1),
             });
+        } else {
+            op1.project.as_mut().unwrap().metadata.project_name = project_name;
         }
     }
-    println!(
-        "Metadata pn: {}",
-        op1.project.clone().unwrap().metadata.project_name
-    );
+
     let pb = ProgressBar::new(0);
     pb.set_style(
         ProgressStyle::default_bar()
