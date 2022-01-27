@@ -1,12 +1,12 @@
 use core::mem::size_of;
 use std::borrow::Cow;
-use std::convert::TryInto;
+use std::convert::{TryFrom, TryInto};
 use std::fs::{read, File};
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
 use chrono::{DateTime, Local};
-use serde::__private::TryFrom;
+use memchr::memmem;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
@@ -14,15 +14,19 @@ use crate::op1::dirs::OP1Dirs;
 use crate::op1::OP1;
 use crate::static_files::StaticFiles;
 use fs_extra::dir::create_all;
-use std::ops::RangeInclusive;
 
 const METADATA_FILENAME: &str = "opu_metadata.aif";
 const METADATA_DIR: &str = "synth/_opu";
-const SIZE_LABEL_BASE_ADDRESS: usize = 0x39490;
-const SIZE_OF_SIZE_LABEL: usize = 8;
+
+const COOKIE: &[u8; 4] = b"OPU:";
+const COOKIE_SIZE: usize = 4;
+const SIZE_OF_SIZE_LABEL: usize = size_of::<usize>();
+
+// These are the addresses used when *writing* the metadata file - theres no guarantee that the OP-1
+// won't alter the file slightly
+const COOKIE_BASE_ADDRESS: usize = 0x39490;
+const SIZE_LABEL_BASE_ADDRESS: usize = COOKIE_BASE_ADDRESS + COOKIE_SIZE;
 const METADATA_BASE_ADDRESS: usize = SIZE_LABEL_BASE_ADDRESS + SIZE_OF_SIZE_LABEL;
-const SIZE_LABEL_BYTES_RANGE: RangeInclusive<usize> =
-    SIZE_LABEL_BASE_ADDRESS..=(METADATA_BASE_ADDRESS - 1);
 
 #[derive(Error, Debug)]
 pub enum Error {
@@ -30,6 +34,8 @@ pub enum Error {
     FileNotFound(PathBuf),
     #[error("Failed to read metadata file {0}")]
     FailedToRead(#[from] std::io::Error),
+    #[error("Unable to find cookie in metadata file")]
+    CookieNotFound,
     #[error("Failed to read metadata file {0}")]
     FailedToDecodeUTF(#[from] std::str::Utf8Error),
     #[error("Failed to read metadata file {0}")]
@@ -135,7 +141,7 @@ impl Metadata {
         let path = Metadata::get_file_path(parent_dir);
         // TODO: Handle errors
         create_all(path.parent().expect("Parent must exist"), true);
-
+        println!("{:?}", path);
         File::create(path)
             .unwrap()
             .write_all(&metadata_file_bytes)
@@ -153,14 +159,21 @@ impl TryFrom<PathBuf> for Metadata {
 
         let file_bytes = read(metadata_file)?;
 
+        let cookie_start_address =
+            memmem::find(&file_bytes, COOKIE).ok_or(Error::CookieNotFound)?;
+        let size_label_base_address = cookie_start_address + COOKIE_SIZE;
+        let metadata_base_address = size_label_base_address + SIZE_OF_SIZE_LABEL;
+
         let metadata_size = usize::from_be_bytes(
-            file_bytes[SIZE_LABEL_BYTES_RANGE]
+            file_bytes[size_label_base_address..metadata_base_address]
                 .try_into()
                 .expect("Should be able to get a usize"),
         );
 
+        println!("M size: {}", metadata_size);
+
         let metadata_str = std::str::from_utf8(
-            &file_bytes[METADATA_BASE_ADDRESS..(METADATA_BASE_ADDRESS + metadata_size)],
+            &file_bytes[metadata_base_address..(metadata_base_address + metadata_size)],
         )?;
         let metadata: Metadata = serde_json::from_str(metadata_str)?;
         Ok(metadata)
@@ -195,6 +208,13 @@ impl Into<Vec<u8>> for Metadata {
             Cow::Borrowed(v) => v.to_owned(),
             Cow::Owned(v) => v,
         };
+
+        // Inserting the cookie
+        metadata_file_bytes.splice(
+            COOKIE_BASE_ADDRESS..(COOKIE_BASE_ADDRESS + COOKIE_SIZE),
+            // Only splice in the number of bytes required to store the size label to save space
+            COOKIE.to_vec(),
+        );
 
         // Inserting the size label
         metadata_file_bytes.splice(

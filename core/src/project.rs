@@ -22,15 +22,19 @@ pub enum Error {
 }
 
 impl Project {
-    // pub fn get_all_projects_in_dir(path: PathBuf) -> Vec<Self> {
-    //     path.read_dir()
-    //         .unwrap()
-    //         .filter_map(|d| d.ok())
-    //         .map(|dir| Project::try_from(dir.path()))
-    //         .filter_map(|p| p.ok())
-    //         .collect()
-    // }
-    //
+    pub fn get_all_projects_in_dir(path: PathBuf) -> Vec<Self> {
+        path.read_dir()
+            .unwrap()
+            .filter_map(|d| d.ok())
+            .map(|dir| Project::try_from(dir.path()))
+            .filter_map(|p| p.ok())
+            .collect()
+    }
+
+    pub fn root_dir(&self) -> PathBuf {
+        self.op1_dirs.parent_dir.clone()
+    }
+
     pub fn save(&mut self) {
         self.metadata.save(&self.op1_dirs.parent_dir)
     }

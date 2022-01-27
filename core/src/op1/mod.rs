@@ -43,7 +43,7 @@ impl OP1 {
             Some(mut project) => {
                 project.save();
 
-                let project_dir = get_dirs().projects.join(&project.metadata.project_name);
+                let project_dir = get_dirs().local_path_for_project(project);
                 // TODO: Handle errors
                 remove_dir_all(project_dir.clone());
                 copy_dir_contents_with_progress(self.mount_point(), project_dir, progress_handler);
@@ -52,23 +52,15 @@ impl OP1 {
     }
 
     // TODO: Some error handling
-    // pub fn load(&self, project: Project) {
-    //     remove_items(&self.subdirs());
-    //     println!("removed!");
-    //
-    //     for project_subdir in project.subdirs() {
-    //         copy_items_with_progress_bar(
-    //             &project_subdir
-    //                 .read_dir()?
-    //                 .filter_map(|d| d.ok())
-    //                 .map(|dir| dir.path())
-    //                 .collect::<Vec<PathBuf>>(),
-    //             self.mount_point
-    //                 .join(project_subdir.file_name().unwrap().to_str().unwrap()),
-    //         );
-    //     }
-    //     Ok(())
-    // }
+    pub fn load<F>(&self, project: Project, progress_handler: F)
+    where
+        F: FnMut(TransitProcess) -> TransitProcessResult,
+    {
+        remove_dir_all(self.mount_point());
+        println!("removed!");
+
+        copy_dir_contents_with_progress(project.root_dir(), self.mount_point(), progress_handler);
+    }
 }
 
 impl From<OP1Dirs> for OP1 {
