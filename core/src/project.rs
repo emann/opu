@@ -1,21 +1,17 @@
-use crate::dirs::get_dirs;
 use crate::metadata::{Error as MetadataError, Metadata};
 use crate::op1::dirs::{Error as OP1DirsError, OP1Dirs};
-use crate::op1::OP1;
-use fs_extra::dir::create_all;
 use std::convert::TryFrom;
-use std::fs::File;
-use std::io::Write;
-use std::path::PathBuf;
+use std::fmt::Debug;
+use std::path::{Path, PathBuf};
 use thiserror::Error;
 
-pub(crate) struct Project {
-    pub(crate) op1_dirs: OP1Dirs,
-    pub(crate) metadata: Metadata,
+pub struct Project {
+    pub op1_dirs: OP1Dirs,
+    pub metadata: Metadata,
 }
 
 #[derive(Error, Debug)]
-pub(crate) enum Error {
+pub enum Error {
     #[error("Path \"{0}\" doesn't exist")]
     ParentDoesntExist(PathBuf),
     #[error("Path \"{0}\" doesn't exist")]
@@ -25,7 +21,7 @@ pub(crate) enum Error {
 }
 
 impl Project {
-    // pub(crate) fn get_all_projects_in_dir(path: PathBuf) -> Vec<Self> {
+    // pub fn get_all_projects_in_dir(path: PathBuf) -> Vec<Self> {
     //     path.read_dir()
     //         .unwrap()
     //         .filter_map(|d| d.ok())
@@ -34,21 +30,13 @@ impl Project {
     //         .collect()
     // }
     //
-    // pub(crate) fn save(&self) {
-    //     let metadata_file_bytes: Vec<u8> = self.metadata.clone().into();
-    //     let path = Metadata::get_file_path(self.root_dir.clone());
-    //     create_all(&path.parent().unwrap(), false);
-    //
-    //     File::create(path)
-    //         .unwrap()
-    //         .write_all(&metadata_file_bytes)
-    //         .unwrap();
-    //
-    //     let dest = get_dirs().join(self.metadata.project_name.clone());
-    //
-    //     // copy_items_with_progress_bar(&self.subdirs(), &dest);
-    //     println!("Project saved to {:?}", dest);
-    // }
+    pub fn save_to<T: AsRef<Path> + Debug>(&self, dest: T) {
+        // TODO: Implement
+        // Update time
+        // If dest path != root path, save all
+        // Else just save metadata
+        println!("Project saved to {:?}", dest);
+    }
 }
 
 impl std::fmt::Display for Project {
@@ -57,21 +45,11 @@ impl std::fmt::Display for Project {
     }
 }
 
-// TODO: impl TryInto<Project> for AsRef<OP1Dirs> or something similar
-impl TryFrom<&OP1> for Project {
+impl TryFrom<&OP1Dirs> for Project {
     type Error = MetadataError;
 
-    fn try_from(op1: &OP1) -> Result<Self, Self::Error> {
-        let op1_dirs: OP1Dirs = op1.into();
-        Project::try_from(op1_dirs)
-    }
-}
-
-impl TryFrom<OP1Dirs> for Project {
-    type Error = MetadataError;
-
-    fn try_from(op1_dirs: OP1Dirs) -> Result<Self, Self::Error> {
-        let metadata = Metadata::try_from(&op1_dirs)?;
+    fn try_from(op1_dirs: &OP1Dirs) -> Result<Self, Self::Error> {
+        let metadata = Metadata::try_from(op1_dirs)?;
         Ok(Project {
             op1_dirs: op1_dirs.clone(),
             metadata,

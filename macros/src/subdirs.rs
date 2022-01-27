@@ -10,7 +10,7 @@ pub fn derive_op1subdirs(input: &DeriveInput) -> Result<TokenStream, syn::Error>
     }
 }
 
-pub(crate) fn get_struct_parser_impl(
+pub fn get_struct_parser_impl(
     input: &DeriveInput,
     data: &DataStruct,
 ) -> syn::Result<TokenStream> {

@@ -7,7 +7,7 @@ pub struct Dirs {
 }
 
 //TODO: Allow this to be configurable e.g. save projects to desktop
-pub(crate) fn get_dirs() -> Dirs {
+pub fn get_dirs() -> Dirs {
     let app_dirs = AppDirs::new(Some("opu"), true).expect("Unable to open projects directory");
 
     return Dirs {

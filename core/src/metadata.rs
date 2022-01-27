@@ -10,6 +10,7 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use crate::op1::dirs::OP1Dirs;
+use crate::op1::OP1;
 use crate::static_files::StaticFiles;
 use std::ops::RangeInclusive;
 
@@ -22,7 +23,7 @@ const SIZE_LABEL_BYTES_RANGE: RangeInclusive<usize> =
     SIZE_LABEL_BASE_ADDRESS..=(METADATA_BASE_ADDRESS - 1);
 
 #[derive(Error, Debug)]
-pub(crate) enum Error {
+pub enum Error {
     #[error("Unable to find metadata file at {0}")]
     FileNotFound(PathBuf),
     #[error("Failed to read metadata file {0}")]
@@ -64,7 +65,7 @@ struct MasterOutSettings {
 }
 
 #[derive(Default, Serialize, Deserialize, Clone)]
-pub(crate) struct MixerSettings {
+pub struct MixerSettings {
     per_channel_mix_settings: [ChannelMixSettings; 4],
     eq_settings: EQSettings,
     master_effect_settings: MasterEffectSettings,
@@ -72,22 +73,22 @@ pub(crate) struct MixerSettings {
 }
 
 #[derive(Default, Serialize, Deserialize, Clone)]
-pub(crate) struct TempoSettings {
+pub struct TempoSettings {
     bpm: f32,
     tape_speed: i8,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
-pub(crate) struct Metadata {
-    pub(crate) project_name: String,
-    created: DateTime<Local>,
+pub struct Metadata {
+    pub project_name: String,
     last_saved: DateTime<Local>,
     tempo_settings: TempoSettings,
     mixer_settings: MixerSettings,
+    created: DateTime<Local>,
 }
 
 impl Metadata {
-    pub(crate) fn new(
+    pub fn new(
         project_name: String,
         tempo_settings: TempoSettings,
         mixer_settings: MixerSettings,
@@ -102,7 +103,7 @@ impl Metadata {
         }
     }
 
-    // pub(crate) fn from_user_input() -> Metadata {
+    // pub fn from_user_input() -> Metadata {
     //     // TODO: Collect tempo & mixer settings
     //     Metadata::new(
     //         prompt_input("Enter a name for the project: ").unwrap(),
@@ -114,15 +115,6 @@ impl Metadata {
     // TODO: Use AsRef<Path>
     pub fn get_file_path(project_dir: PathBuf) -> PathBuf {
         return project_dir.join(METADATA_DIR).join(METADATA_FILENAME);
-    }
-}
-
-impl TryFrom<&OP1Dirs> for Metadata {
-    type Error = Error;
-
-    fn try_from(op1_dirs: &OP1Dirs) -> Result<Self, Self::Error> {
-        let metadata_file = Metadata::get_file_path(op1_dirs.parent_dir.clone());
-        Metadata::try_from(metadata_file)
     }
 }
 
@@ -148,6 +140,23 @@ impl TryFrom<PathBuf> for Metadata {
         )?;
         let metadata: Metadata = serde_json::from_str(metadata_str)?;
         Ok(metadata)
+    }
+}
+
+impl TryFrom<&OP1Dirs> for Metadata {
+    type Error = Error;
+
+    fn try_from(op1_dirs: &OP1Dirs) -> Result<Self, Self::Error> {
+        let metadata_file = Metadata::get_file_path(op1_dirs.parent_dir.clone());
+        Metadata::try_from(metadata_file)
+    }
+}
+
+impl TryFrom<&OP1> for Metadata {
+    type Error = Error;
+
+    fn try_from(op1: &OP1) -> Result<Self, Self::Error> {
+        Metadata::try_from(&OP1Dirs::from(op1))
     }
 }
 
