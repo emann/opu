@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 use std::path::Path;
 
-use fs_extra::dir::{copy_with_progress, CopyOptions, TransitProcess, TransitProcessResult};
+use fs_extra::dir::{copy, copy_with_progress, CopyOptions, TransitProcess, TransitProcessResult};
 use fs_extra::error::Result as FsExtraResult;
 
 pub fn copy_dir_contents_with_progress<P, Q, F>(
@@ -14,8 +14,6 @@ where
     Q: AsRef<Path> + Debug,
     F: FnMut(TransitProcess) -> TransitProcessResult,
 {
-    // create_all(&to, true)?;
-
     println!("Copying contents of {:?} to {:?}", from, to);
 
     let mut options = CopyOptions::new();

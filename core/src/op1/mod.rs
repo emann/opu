@@ -9,6 +9,7 @@ use crate::op1::dirs::{Error as OP1DirsError, OP1Dirs};
 use crate::project::Project;
 use fs_extra::dir::{TransitProcess, TransitProcessResult};
 use std::convert::TryFrom;
+use std::fs::remove_dir_all;
 use sysinfo::{DiskExt, SystemExt};
 
 pub struct OP1 {
@@ -33,20 +34,21 @@ impl OP1 {
 
     // TODO: Handle errors
     /// Save project to device and to projects dir
-    pub fn save_project<F>(&self, progress_handler: F)
+    pub fn save_project<F>(&mut self, progress_handler: F)
     where
         F: FnMut(TransitProcess) -> TransitProcessResult,
     {
-        self.project
-            .as_ref()
-            .expect("No project to save (eventually this will be an error)")
-            .save_to(&self.op1_dirs.parent_dir);
+        match self.project.clone() {
+            None => panic!("No project to save (eventually this will be an error to handle)"),
+            Some(mut project) => {
+                project.save();
 
-        let project_dir = get_dirs()
-            .projects
-            .join(&self.project.as_ref().unwrap().metadata.project_name);
-
-        copy_dir_contents_with_progress(self.mount_point(), project_dir, progress_handler);
+                let project_dir = get_dirs().projects.join(&project.metadata.project_name);
+                // TODO: Handle errors
+                remove_dir_all(project_dir.clone());
+                copy_dir_contents_with_progress(self.mount_point(), project_dir, progress_handler);
+            }
+        }
     }
 
     // TODO: Some error handling
@@ -82,7 +84,7 @@ impl From<OP1Dirs> for OP1 {
 impl TryFrom<PathBuf> for OP1 {
     type Error = OP1DirsError;
 
-    fn try_from(parent_dir: PathBuf) -> Result<Self, Self::Error> {
-        OP1Dirs::try_from(parent_dir).map(OP1::from)
+    fn try_from(mount_point: PathBuf) -> Result<Self, Self::Error> {
+        OP1Dirs::try_from(mount_point).map(OP1::from)
     }
 }

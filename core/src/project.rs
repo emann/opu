@@ -1,11 +1,11 @@
 use crate::metadata::{Error as MetadataError, Metadata};
 use crate::op1::dirs::{Error as OP1DirsError, OP1Dirs};
-use chrono::Local;
 use std::convert::TryFrom;
 use std::fmt::Debug;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use thiserror::Error;
 
+#[derive(Clone)]
 pub struct Project {
     pub op1_dirs: OP1Dirs,
     pub metadata: Metadata,
@@ -31,11 +31,8 @@ impl Project {
     //         .collect()
     // }
     //
-    pub fn save_to<T: AsRef<Path> + Debug>(&mut self, dest: T) {
-        // TODO: Implement
-        self.metadata.last_saved = Local::now();
-        self.metadata.save
-        println!("Project saved to {:?}", dest);
+    pub fn save(&mut self) {
+        self.metadata.save(&self.op1_dirs.parent_dir)
     }
 }
 

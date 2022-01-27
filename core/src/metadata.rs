@@ -1,8 +1,9 @@
 use core::mem::size_of;
 use std::borrow::Cow;
 use std::convert::TryInto;
-use std::fs::read;
-use std::path::PathBuf;
+use std::fs::{read, File};
+use std::io::Write;
+use std::path::{Path, PathBuf};
 
 use chrono::{DateTime, Local};
 use serde::__private::TryFrom;
@@ -12,6 +13,7 @@ use thiserror::Error;
 use crate::op1::dirs::OP1Dirs;
 use crate::op1::OP1;
 use crate::static_files::StaticFiles;
+use fs_extra::dir::create_all;
 use std::ops::RangeInclusive;
 
 const METADATA_FILENAME: &str = "opu_metadata.aif";
@@ -112,17 +114,39 @@ impl Metadata {
     //     )
     // }
 
-    // TODO: Use AsRef<Path>
-    pub fn get_file_path(project_dir: PathBuf) -> PathBuf {
-        return project_dir.join(METADATA_DIR).join(METADATA_FILENAME);
+    pub fn get_file_path<P>(metadata_file: P) -> PathBuf
+    where
+        P: AsRef<Path>,
+    {
+        return metadata_file
+            .as_ref()
+            .to_path_buf()
+            .join(METADATA_DIR)
+            .join(METADATA_FILENAME);
+    }
+
+    pub fn save<P>(&mut self, parent_dir: P)
+    where
+        P: AsRef<Path>,
+    {
+        self.last_saved = Local::now();
+        let metadata_file_bytes: Vec<u8> = self.clone().into();
+
+        let path = Metadata::get_file_path(parent_dir);
+        // TODO: Handle errors
+        create_all(path.parent().expect("Parent must exist"), true);
+
+        File::create(path)
+            .unwrap()
+            .write_all(&metadata_file_bytes)
+            .unwrap();
     }
 }
 
 impl TryFrom<PathBuf> for Metadata {
     type Error = Error;
 
-    fn try_from(parent_dir: PathBuf) -> Result<Self, Self::Error> {
-        let metadata_file = Metadata::get_file_path(parent_dir);
+    fn try_from(metadata_file: PathBuf) -> Result<Self, Self::Error> {
         metadata_file
             .try_exists()
             .map_err(|_| Error::FileNotFound(metadata_file.clone()))?;
@@ -148,6 +172,7 @@ impl TryFrom<&OP1Dirs> for Metadata {
 
     fn try_from(op1_dirs: &OP1Dirs) -> Result<Self, Self::Error> {
         let metadata_file = Metadata::get_file_path(op1_dirs.parent_dir.clone());
+        println!("Checking for {:?}", metadata_file);
         Metadata::try_from(metadata_file)
     }
 }
