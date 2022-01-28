@@ -68,7 +68,7 @@ impl TryFrom<PathBuf> for Project {
 
         let op1_dirs: OP1Dirs = OP1Dirs::try_from(parent_dir.clone())?;
 
-        let metadata = Metadata::try_from(parent_dir.clone())?;
+        let metadata = Metadata::try_from(&op1_dirs)?;
 
         Ok(Project { op1_dirs, metadata })
     }

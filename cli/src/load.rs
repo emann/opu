@@ -1,29 +1,27 @@
-use std::env;
-use std::path::{Path, PathBuf};
-
-use color_eyre::eyre::WrapErr;
 use color_eyre::Result;
 
-use crate::dirs::get_projects_dir;
-use crate::op1::OP1;
-use crate::project::Project;
-use crate::prompt::{prompt_select, unwrap_or_prompt_input};
+use crate::prompt::prompt_select;
+use crate::utils::{progress_callback, progress_callback2};
 use clap::ArgMatches;
-use core::file_utils::copy_items_with_progress_bar;
+use core::dirs::get_dirs;
+use core::op1::OP1;
+use core::project::Project;
+use indicatif::{ProgressBar, ProgressStyle};
 
 // TODO: Get list of OP1 images in backup dir and pass to a select prompt
 // TODO: Warn about overwrite, offer to save first
-pub fn collect_args_and_run(arg_matches: Option<&ArgMatches>, op1: OP1) -> Result<()> {
-    // let backup_name = unwrap_or_prompt_input(
-    //     arg_matches.and_then(|am| am.value_of("name")),
-    //     "What would you like the backup to be called?",
-    // )?;
-
+pub fn collect_args_and_run(arg_matches: Option<&ArgMatches>, mut op1: OP1) -> Result<()> {
     let project = prompt_select(
-        Project::get_all_projects_in_dir(get_projects_dir()),
+        Project::get_all_projects_in_dir(get_dirs().projects),
         "Select a project to load",
     )
     .unwrap();
-    op1.load(project);
+
+    let pb = ProgressBar::new(0);
+    pb.set_style(
+        ProgressStyle::default_bar()
+            .template("{spinner:.green} [{bar:.cyan/blue}] {bytes}/{total_bytes}"),
+    );
+    op1.load(project, progress_callback2(pb));
     Ok(())
 }

@@ -17,3 +17,20 @@ pub(crate) fn progress_callback(
         TransitProcessResult::OverwriteAll
     }
 }
+
+pub(crate) fn progress_callback2(
+    pb: ProgressBar,
+) -> impl FnMut(fs_extra::TransitProcess) -> TransitProcessResult {
+    move |tp: fs_extra::TransitProcess| -> TransitProcessResult {
+        if pb.length() == 0 {
+            pb.set_length(tp.total_bytes);
+        }
+        if tp.copied_bytes < tp.total_bytes {
+            // TODO: Maybe remove
+            pb.set_position(tp.copied_bytes);
+        } else {
+            pb.finish();
+        }
+        TransitProcessResult::OverwriteAll
+    }
+}

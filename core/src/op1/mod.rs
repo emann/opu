@@ -4,7 +4,7 @@ pub mod dirs;
 use std::path::PathBuf;
 
 use crate::dirs::get_dirs;
-use crate::file_utils::copy_dir_contents_with_progress;
+use crate::file_utils::{copy_dir_contents_with_progress, copy_items_with_progress};
 use crate::op1::dirs::{Error as OP1DirsError, OP1Dirs};
 use crate::project::Project;
 use fs_extra::dir::{TransitProcess, TransitProcessResult};
@@ -33,6 +33,7 @@ impl OP1 {
     }
 
     // TODO: Handle errors
+    // TODO: Only copy changed files
     /// Save project to device and to projects dir
     pub fn save_project<F>(&mut self, progress_handler: F)
     where
@@ -54,12 +55,14 @@ impl OP1 {
     // TODO: Some error handling
     pub fn load<F>(&self, project: Project, progress_handler: F)
     where
-        F: FnMut(TransitProcess) -> TransitProcessResult,
+        F: FnMut(fs_extra::TransitProcess) -> TransitProcessResult,
     {
         remove_dir_all(self.mount_point());
         println!("removed!");
 
-        copy_dir_contents_with_progress(project.root_dir(), self.mount_point(), progress_handler);
+        let dirs: Vec<PathBuf> = project.op1_dirs.into_iter().collect();
+
+        copy_items_with_progress(&dirs, self.mount_point(), progress_handler);
     }
 }
 

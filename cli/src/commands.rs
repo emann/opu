@@ -1,6 +1,6 @@
 use color_eyre::eyre::Result;
 
-// use crate::load;
+use crate::load;
 use crate::save;
 use clap::ArgMatches;
 use core::op1::OP1;
@@ -10,10 +10,10 @@ pub static COMMANDS: &[Command] = &[
         name: "save",
         collect_args_and_run: save::collect_args_and_run,
     },
-    // Command {
-    //     name: "load",
-    //     collect_args_and_run: load::collect_args_and_run,
-    // },
+    Command {
+        name: "load",
+        collect_args_and_run: load::collect_args_and_run,
+    },
 ];
 
 type OPUCommand = fn(arg_matches: Option<&ArgMatches>, op1: OP1) -> Result<()>;

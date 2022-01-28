@@ -69,3 +69,33 @@ impl From<&OP1> for OP1Dirs {
         op1.op1_dirs.clone()
     }
 }
+
+impl IntoIterator for OP1Dirs {
+    type Item = PathBuf;
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        vec![self.album, self.drum, self.synth, self.tape].into_iter()
+    }
+}
+
+// pub struct OP1DirsIterator {
+//     op1_dirs: OP1Dirs,
+//     index: usize,
+// }
+//
+// impl Iterator for OP1DirsIterator {
+//     type Item = PathBuf;
+//
+//     fn next(&mut self) -> Option<PathBuf> {
+//         let result = match self.index {
+//             0 => self.op1_dirs.album,
+//             1 => self.op1_dirs.drum,
+//             2 => self.op1_dirs.synth,
+//             3 => self.op1_dirs.tape,
+//             _ => return None,
+//         };
+//         self.index += 1;
+//         Some(result)
+//     }
+// }

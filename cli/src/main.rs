@@ -15,7 +15,7 @@ use core::op1::OP1;
 use prompt::unwrap_and_validate_or_prompt_select;
 
 mod commands;
-// mod load;
+mod load;
 mod prompt;
 mod save;
 mod utils;
@@ -34,12 +34,12 @@ fn main() -> Result<()> {
         )
         .subcommand(
             App::new("load")
-                .about("Loads a previously saved backup onto the OP-1")
+                .about("Loads a previously saved project onto the OP-1")
                 .arg(Arg::new("name").help(
-                    "The name of the backup stored in OPU's configured storage path to be loaded",
+                    "The name of the project stored in OPU's configured storage path to be loaded",
                 ))
-                .arg(Arg::new("path").help("The path to the backup to be loaded"))
-                .group(ArgGroup::new("name_or_path_to_backup").args(&["name", "path"])),
+                .arg(Arg::new("path").help("The path to the project to be loaded"))
+                .group(ArgGroup::new("name_or_path_to_project").args(&["name", "path"])),
         )
         .get_matches();
 

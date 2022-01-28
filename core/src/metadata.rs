@@ -170,8 +170,6 @@ impl TryFrom<PathBuf> for Metadata {
                 .expect("Should be able to get a usize"),
         );
 
-        println!("M size: {}", metadata_size);
-
         let metadata_str = std::str::from_utf8(
             &file_bytes[metadata_base_address..(metadata_base_address + metadata_size)],
         )?;
@@ -185,7 +183,6 @@ impl TryFrom<&OP1Dirs> for Metadata {
 
     fn try_from(op1_dirs: &OP1Dirs) -> Result<Self, Self::Error> {
         let metadata_file = Metadata::get_file_path(op1_dirs.parent_dir.clone());
-        println!("Checking for {:?}", metadata_file);
         Metadata::try_from(metadata_file)
     }
 }
