@@ -1,13 +1,15 @@
 use color_eyre::Result;
 
 use crate::prompt::unwrap_or_prompt_input;
-use crate::utils::progress_callback;
+use crate::utils::{progress_callback, progress_callback2};
 use clap::ArgMatches;
 use core::metadata::{Metadata, MixerSettings, TempoSettings};
-use core::op1::dirs::OP1Dirs;
+use core::op1::dirs::{OP1Dirs, OP1Subdir};
 use core::op1::OP1;
 use core::project::Project;
 use indicatif::{ProgressBar, ProgressStyle};
+use std::collections::HashSet;
+use std::iter::FromIterator;
 
 pub fn collect_args_and_run(arg_matches: Option<&ArgMatches>, mut op1: OP1) -> Result<()> {
     let name_arg = arg_matches.and_then(|am| am.value_of("name"));
@@ -40,6 +42,14 @@ pub fn collect_args_and_run(arg_matches: Option<&ArgMatches>, mut op1: OP1) -> R
         ProgressStyle::default_bar()
             .template("{spinner:.green} [{bar:.cyan/blue}] {bytes}/{total_bytes}"),
     );
-    op1.save_project(progress_callback(pb));
+
+    let dirs_to_save = HashSet::from_iter(vec![
+        OP1Subdir::Album,
+        OP1Subdir::Drum,
+        OP1Subdir::Synth,
+        OP1Subdir::Tape,
+    ]);
+
+    op1.save_project(dirs_to_save, progress_callback2(pb));
     Ok(())
 }

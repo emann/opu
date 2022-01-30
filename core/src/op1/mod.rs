@@ -5,9 +5,10 @@ use std::path::PathBuf;
 
 use crate::dirs::get_dirs;
 use crate::file_utils::{copy_dir_contents_with_progress, copy_items_with_progress};
-use crate::op1::dirs::{Error as OP1DirsError, OP1Dirs};
+use crate::op1::dirs::{Error as OP1DirsError, OP1Dirs, OP1Subdir};
 use crate::project::Project;
 use fs_extra::dir::{TransitProcess, TransitProcessResult};
+use std::collections::HashSet;
 use std::convert::TryFrom;
 use std::fs::remove_dir_all;
 use sysinfo::{DiskExt, SystemExt};
@@ -35,9 +36,9 @@ impl OP1 {
     // TODO: Handle errors
     // TODO: Only copy changed files
     /// Save project to device and to projects dir
-    pub fn save_project<F>(&mut self, progress_handler: F)
+    pub fn save_project<F>(&mut self, dirs_to_save: HashSet<OP1Subdir>, progress_handler: F)
     where
-        F: FnMut(TransitProcess) -> TransitProcessResult,
+        F: FnMut(fs_extra::TransitProcess) -> TransitProcessResult,
     {
         match self.project.clone() {
             None => panic!("No project to save (eventually this will be an error to handle)"),
@@ -47,7 +48,8 @@ impl OP1 {
                 let project_dir = get_dirs().local_path_for_project(project);
                 // TODO: Handle errors
                 remove_dir_all(project_dir.clone());
-                copy_dir_contents_with_progress(self.mount_point(), project_dir, progress_handler);
+                self.op1_dirs
+                    .copy_to(project_dir, dirs_to_save, progress_handler);
             }
         }
     }
