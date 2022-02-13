@@ -1,5 +1,4 @@
 use core::mem::size_of;
-use std::borrow::Cow;
 use std::convert::{TryFrom, TryInto};
 use std::fs::{read, File};
 use std::io::Write;
@@ -12,8 +11,10 @@ use thiserror::Error;
 
 use crate::op1::dirs::OP1Dirs;
 use crate::op1::OP1;
-use crate::static_files::StaticFiles;
 use fs_extra::dir::create_all;
+use include_flate::flate;
+
+flate!(static BASE_METADATA_FILE_BYTES: [u8] from "assets/opu_metadata.aif");
 
 const METADATA_FILENAME: &str = "opu_metadata.aif";
 const METADATA_DIR: &str = "synth/_opu";
@@ -42,13 +43,13 @@ pub enum Error {
     FailedToParseJSON(#[from] serde_json::Error),
 }
 
-#[derive(Default, Serialize, Deserialize, Clone)]
+#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 struct ChannelMixSettings {
     level: u8, // 0-99
     pan: i8,   // Estimate -100 (all the way left) to 100 (all the way to the right)
 }
 
-#[derive(Default, Serialize, Deserialize, Clone)]
+#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 struct EQSettings {
     low: u8,  // Estimate 0-100
     mid: u8,  // Estimate 0-100
@@ -56,7 +57,7 @@ struct EQSettings {
 }
 
 // TODO: (maybe?) Create an enum of the effects with anonymous structs with better named fields
-#[derive(Default, Serialize, Deserialize, Clone)]
+#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 struct MasterEffectSettings {
     blue: u8,   // Estimate 0-100
     green: u8,  // Estimate 0-100
@@ -64,7 +65,7 @@ struct MasterEffectSettings {
     orange: u8, // Estimate 0-100
 }
 
-#[derive(Default, Serialize, Deserialize, Clone)]
+#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 struct MasterOutSettings {
     left_balance: u8,  // 0-99
     right_balance: u8, // 0-99
@@ -72,7 +73,7 @@ struct MasterOutSettings {
     release: u8,       // 0-300 (I think)
 }
 
-#[derive(Default, Serialize, Deserialize, Clone)]
+#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct MixerSettings {
     per_channel_mix_settings: [ChannelMixSettings; 4],
     eq_settings: EQSettings,
@@ -80,13 +81,15 @@ pub struct MixerSettings {
     master_out_settings: MasterOutSettings,
 }
 
-#[derive(Default, Serialize, Deserialize, Clone)]
+#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct TempoSettings {
     bpm: f32,
     tape_speed: i8,
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+impl Eq for TempoSettings {}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct Metadata {
     pub project_name: String,
     pub last_saved: DateTime<Local>,
@@ -120,11 +123,11 @@ impl Metadata {
     //     )
     // }
 
-    pub fn get_file_path<P>(metadata_file: P) -> PathBuf
+    pub fn get_file_path<P>(project_parent_dir: P) -> PathBuf
     where
         P: AsRef<Path>,
     {
-        return metadata_file
+        return project_parent_dir
             .as_ref()
             .to_path_buf()
             .join(METADATA_DIR)
@@ -201,10 +204,7 @@ impl Into<Vec<u8>> for Metadata {
         let size_of_serialized_metadata = serialized_metadata.len();
 
         // Load the base metadata file into memory
-        let mut metadata_file_bytes: Vec<u8> = match StaticFiles::get(METADATA_FILENAME).unwrap() {
-            Cow::Borrowed(v) => v.to_owned(),
-            Cow::Owned(v) => v,
-        };
+        let mut metadata_file_bytes: Vec<u8> = BASE_METADATA_FILE_BYTES.to_vec();
 
         // Inserting the cookie
         metadata_file_bytes.splice(

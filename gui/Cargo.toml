@@ -1,0 +1,14 @@
+[package]
+name = "opu-gui"
+version = "0.1.0"
+authors = ["Ethan Mann <emanndev7@gmail.com"]
+edition = "2021"
+
+[dependencies]
+iced = { version = "0.3.0", features = ["tokio"] }
+iced_futures = "0.3.0"
+iced_aw = { git="ssh://git@github.com/iced-rs/iced_aw" , default-features = false, features = ["selection_list"] }
+reqwest = "0.11"
+opu-core = {path = "../core"}
+triax_ui = { version = "0.2", features = ["derive"], git = "ssh://git@github.com/triaxtec/triax-ui-rs", branch = "main" }
+include-flate = "0.1.4"

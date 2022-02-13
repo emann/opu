@@ -5,4 +5,3 @@ pub mod file_utils;
 pub mod metadata;
 pub mod op1;
 pub mod project;
-pub mod static_files;

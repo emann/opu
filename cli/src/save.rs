@@ -3,11 +3,11 @@ use color_eyre::Result;
 use crate::prompt::unwrap_or_prompt_input;
 use crate::utils::{progress_callback, progress_callback2};
 use clap::ArgMatches;
-use core::metadata::{Metadata, MixerSettings, TempoSettings};
-use core::op1::dirs::{OP1Dirs, OP1Subdir};
-use core::op1::OP1;
-use core::project::Project;
 use indicatif::{ProgressBar, ProgressStyle};
+use opu_core::metadata::{Metadata, MixerSettings, TempoSettings};
+use opu_core::op1::dirs::{OP1Dirs, OP1Subdir};
+use opu_core::op1::OP1;
+use opu_core::project::Project;
 use std::collections::HashSet;
 use std::iter::FromIterator;
 

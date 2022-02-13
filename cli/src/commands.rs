@@ -3,7 +3,7 @@ use color_eyre::eyre::Result;
 use crate::load;
 use crate::save;
 use clap::ArgMatches;
-use core::op1::OP1;
+use opu_core::op1::OP1;
 
 pub static COMMANDS: &[Command] = &[
     Command {

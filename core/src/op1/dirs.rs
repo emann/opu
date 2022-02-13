@@ -21,7 +21,7 @@ pub enum OP1Subdir {
     Tape,
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Eq, Debug)]
 pub struct OP1Dirs {
     pub parent_dir: PathBuf,
 
@@ -50,6 +50,7 @@ impl OP1Dirs {
             .into_iter()
             .map(|sd| self.get_subdir_path(sd))
             .collect();
+        // TODO: Handle errors
         copy_items_with_progress(&dirs_vec, dest_path, progress_handler);
     }
 }

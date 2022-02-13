@@ -11,7 +11,7 @@ use dialoguer::console::Term;
 use indicatif::{ProgressBar, ProgressStyle};
 
 use commands::COMMANDS;
-use core::op1::OP1;
+use opu_core::op1::OP1;
 use prompt::unwrap_and_validate_or_prompt_select;
 
 mod commands;
@@ -43,25 +43,15 @@ fn main() -> Result<()> {
         )
         .get_matches();
 
-    let connected_op1 = match OP1::find_connected_op1() {
-        Some(op1) => op1,
-        None => {
-            let pb = ProgressBar::new(1000);
-            pb.set_style(
-                ProgressStyle::default_bar()
-                    .template("No OP-1 detected. Waiting for one to be connected {spinner:.green}"),
-            );
-            pb.enable_steady_tick(10);
-
-            let mut op1 = OP1::find_connected_op1();
-            while let None = op1 {
-                op1 = OP1::find_connected_op1();
-                thread::sleep(time::Duration::from_millis(100));
-            }
-            pb.finish();
-            OP1::find_connected_op1().unwrap()
-        }
-    };
+    // Get the connected OP1
+    let pb = ProgressBar::new(1000);
+    pb.set_style(
+        ProgressStyle::default_bar()
+            .template("No OP-1 detected. Waiting for one to be connected {spinner:.green}"),
+    );
+    pb.enable_steady_tick(10);
+    let connected_op1 = OP1::block_until_op1_connected();
+    pb.finish();
 
     // TODO: Clean this up, probably by using the ColorfulTheme directly
     let term = Term::stdout();

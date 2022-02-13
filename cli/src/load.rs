@@ -3,10 +3,10 @@ use color_eyre::Result;
 use crate::prompt::prompt_select;
 use crate::utils::{progress_callback, progress_callback2};
 use clap::ArgMatches;
-use core::dirs::get_dirs;
-use core::op1::OP1;
-use core::project::Project;
 use indicatif::{ProgressBar, ProgressStyle};
+use opu_core::dirs::get_dirs;
+use opu_core::op1::OP1;
+use opu_core::project::Project;
 
 // TODO: Get list of OP1 images in backup dir and pass to a select prompt
 // TODO: Warn about overwrite, offer to save first

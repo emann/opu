@@ -1,3 +1,4 @@
+use crate::dirs::get_dirs;
 use crate::metadata::{Error as MetadataError, Metadata};
 use crate::op1::dirs::{Error as OP1DirsError, OP1Dirs};
 use std::convert::TryFrom;
@@ -5,7 +6,34 @@ use std::fmt::Debug;
 use std::path::PathBuf;
 use thiserror::Error;
 
-#[derive(Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ProjectLibrary {
+    pub projects: Vec<Project>,
+}
+
+impl Default for ProjectLibrary {
+    fn default() -> Self {
+        let projects = Project::get_all_projects_in_dir(get_dirs().projects);
+        Self { projects }
+    }
+}
+
+impl From<ProjectLibrary> for Vec<Project> {
+    fn from(pl: ProjectLibrary) -> Self {
+        pl.projects
+    }
+}
+
+impl IntoIterator for ProjectLibrary {
+    type Item = Project;
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.projects.into_iter()
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Project {
     pub op1_dirs: OP1Dirs,
     pub metadata: Metadata,
@@ -37,6 +65,15 @@ impl Project {
 
     pub fn save(&mut self) {
         self.metadata.save(&self.op1_dirs.parent_dir)
+    }
+}
+
+impl Default for Project {
+    fn default() -> Self {
+        ProjectLibrary::default()
+            .into_iter()
+            .next()
+            .expect("For now we assume there are project available locally")
     }
 }
 
