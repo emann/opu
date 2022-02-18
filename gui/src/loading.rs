@@ -19,7 +19,7 @@ impl Loading {
     pub fn new(colors: Vec<Color>, tick_ms: u64) -> Self {
         let n_circles = colors.len() as u64;
         // + 2 to allow one interval with none showing and one intervals with all showing
-        let n_intervals = (n_circles + 2);
+        let n_intervals = n_circles + 2;
         Self {
             current_interval: 0,
             canvas: canvas::Cache::new(),

@@ -2,10 +2,7 @@ use crate::loading::Loading;
 use crate::{style, Config};
 use iced::{Align, Canvas, Column, Command, Element, Length, Text};
 use opu_core::op1::OP1;
-use triax_ui::{
-    widgets::{column, text},
-    NewStage, Stage, StageMessage,
-};
+use triax_ui::{Stage, StageMessage};
 
 #[derive(Clone, Debug, StageMessage)]
 #[triax_ui(stage(WaitForOP1ToBeConnected))]
@@ -71,7 +68,7 @@ impl Stage for WaitForOP1ToBeConnected {
             .push(
                 Text::new(String::from("Waiting for OP-1 to be connected"))
                     .size(50)
-                    .color(style::colors::hardware::DARK_GRAY),
+                    .color(self.config.theme().text_color()),
             )
             .push(loading)
             .into()

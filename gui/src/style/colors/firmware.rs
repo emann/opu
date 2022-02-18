@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 pub use iced::Color;
 
 // All values in this file were taken from unpacked OP-1 firmware

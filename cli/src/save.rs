@@ -1,7 +1,8 @@
 use color_eyre::Result;
 
+use crate::config::{Config, OPUConfig};
 use crate::prompt::unwrap_or_prompt_input;
-use crate::utils::{progress_callback, progress_callback2};
+use crate::utils::progress_callback2;
 use clap::ArgMatches;
 use indicatif::{ProgressBar, ProgressStyle};
 use opu_core::metadata::{Metadata, MixerSettings, TempoSettings};
@@ -11,7 +12,11 @@ use opu_core::project::Project;
 use std::collections::HashSet;
 use std::iter::FromIterator;
 
-pub fn collect_args_and_run(arg_matches: Option<&ArgMatches>, mut op1: OP1) -> Result<()> {
+pub fn collect_args_and_run(
+    config: Config,
+    mut op1: OP1,
+    arg_matches: Option<&ArgMatches>,
+) -> Result<()> {
     let name_arg = arg_matches.and_then(|am| am.value_of("name"));
 
     // Name unspecified and project metadata found on device - "Save" Operation, go right to saving
@@ -50,6 +55,10 @@ pub fn collect_args_and_run(arg_matches: Option<&ArgMatches>, mut op1: OP1) -> R
         OP1Subdir::Tape,
     ]);
 
-    op1.save_project(dirs_to_save, progress_callback2(pb));
+    op1.save_project(
+        config.local_path_for_project(op1.project.clone().expect("Must have project by now")),
+        dirs_to_save,
+        progress_callback2(pb),
+    );
     Ok(())
 }

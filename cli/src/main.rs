@@ -10,11 +10,14 @@ use console::style;
 use dialoguer::console::Term;
 use indicatif::{ProgressBar, ProgressStyle};
 
+use crate::config::Config;
 use commands::COMMANDS;
 use opu_core::op1::OP1;
+use opu_core::{CoreConfig, OPUConfig};
 use prompt::unwrap_and_validate_or_prompt_select;
 
 mod commands;
+mod config;
 mod load;
 mod prompt;
 mod save;
@@ -23,8 +26,11 @@ mod utils;
 // TODO: Config.toml, backup dir
 // TODO: Daemon to automatically open when op-1 detected
 
-fn main() -> Result<()> {
+#[tokio::main]
+async fn main() -> Result<()> {
     color_eyre::install().expect("Could not set up error handling with color_eyre");
+
+    let config: Config = Config::load()?;
 
     let matches = App::new("opu")
         .subcommand(
@@ -50,7 +56,7 @@ fn main() -> Result<()> {
             .template("No OP-1 detected. Waiting for one to be connected {spinner:.green}"),
     );
     pb.enable_steady_tick(10);
-    let connected_op1 = OP1::block_until_op1_connected();
+    let connected_op1 = OP1::get_connected_op1().await;
     pb.finish();
 
     // TODO: Clean this up, probably by using the ColorfulTheme directly
@@ -74,5 +80,9 @@ fn main() -> Result<()> {
     )
     .expect("Unable to determine command");
 
-    (command.collect_args_and_run)(matches.subcommand_matches(command.name), connected_op1)
+    (command.collect_args_and_run)(
+        config,
+        connected_op1,
+        matches.subcommand_matches(command.name),
+    )
 }

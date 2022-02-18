@@ -1,9 +1,7 @@
 pub mod dirs;
-// pub mod subdirs;
 
 use std::path::PathBuf;
 
-use crate::dirs::get_dirs;
 use crate::file_utils::{copy_dir_contents_with_progress, copy_items_with_progress};
 use crate::op1::dirs::{Error as OP1DirsError, OP1Dirs, OP1Subdir};
 use crate::project::Project;
@@ -55,8 +53,12 @@ impl OP1 {
     // TODO: Handle errors
     // TODO: Only copy changed files
     /// Save project to device and to projects dir
-    pub fn save_project<F>(&mut self, dirs_to_save: HashSet<OP1Subdir>, progress_handler: F)
-    where
+    pub fn save_project<F>(
+        &mut self,
+        dest: PathBuf,
+        dirs_to_save: HashSet<OP1Subdir>,
+        progress_handler: F,
+    ) where
         F: FnMut(fs_extra::TransitProcess) -> TransitProcessResult,
     {
         match self.project.clone() {
@@ -64,11 +66,9 @@ impl OP1 {
             Some(mut project) => {
                 project.save();
 
-                let project_dir = get_dirs().local_path_for_project(project);
                 // TODO: Handle errors
-                remove_dir_all(project_dir.clone());
-                self.op1_dirs
-                    .copy_to(project_dir, dirs_to_save, progress_handler);
+                remove_dir_all(dest.clone());
+                self.op1_dirs.copy_to(dest, dirs_to_save, progress_handler);
             }
         }
     }

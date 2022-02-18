@@ -14,3 +14,5 @@ dialoguer = "0.8.0"
 opu-core = {path = "../core"}
 indicatif = "0.16.2"
 fs_extra = "1.2.0"
+tokio = {version="1.16.1", features=["macros"]}
+serde = {version="1.0.136", features=["derive"]}

@@ -1,7 +1,7 @@
 use color_eyre::eyre::Result;
 
-use crate::load;
 use crate::save;
+use crate::{load, Config};
 use clap::ArgMatches;
 use opu_core::op1::OP1;
 
@@ -16,7 +16,7 @@ pub static COMMANDS: &[Command] = &[
     },
 ];
 
-type OPUCommand = fn(arg_matches: Option<&ArgMatches>, op1: OP1) -> Result<()>;
+type OPUCommand = fn(config: Config, op1: OP1, arg_matches: Option<&ArgMatches>) -> Result<()>;
 
 #[derive(Clone)]
 pub struct Command<'a> {

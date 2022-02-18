@@ -5,9 +5,9 @@ use iced::{
 };
 use iced_aw::selection_list::StyleSheet;
 use iced_aw::{selection_list, SelectionList};
-use opu_core::dirs::get_dirs;
 use opu_core::op1::OP1;
-use opu_core::project::{Project, ProjectLibrary};
+use opu_core::project::Project;
+use opu_core::OPUConfig;
 use triax_ui::{
     loading::Logo,
     widgets::{column, text},
@@ -49,13 +49,19 @@ impl TryFrom<&mut super::SelectOperation> for NewStage<Load> {
     type Error = String;
 
     fn try_from(prev: &mut super::SelectOperation) -> Result<Self, Self::Error> {
+        let config = prev.config.clone();
+        let projects = Project::get_all_projects_in_dir(config.project_library());
+        // TODO: Handle no projects available case
+        let selected_project = projects.clone().into_iter().next().expect(
+            "For now we expect there to be a project available to use as the first selected",
+        );
         Ok((
             Load {
-                config: prev.config.clone(),
+                config,
+                projects,
                 op1: prev.op1.op1_dirs.clone().into(),
-                projects: Project::get_all_projects_in_dir(get_dirs().projects),
                 selection_list: selection_list::State::default(),
-                selected_project: Project::default(),
+                selected_project,
             },
             Command::none(),
         ))

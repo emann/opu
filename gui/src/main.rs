@@ -6,34 +6,26 @@
 
 use iced::{Application, Command};
 use include_flate::flate;
+use opu_core::config::OPUConfig;
 use triax_ui::Stage as StageImpl;
 
+use crate::config::Config;
+
+mod config;
 mod loading;
 mod stages;
 mod style;
 
 flate!(static OP1_FONT_BYTES: [u8] from "assets/op1_font.ttf");
 
-#[derive(Default, Debug, Clone)]
-pub struct Config {
-    placeholder: u8,
-}
-
 fn main() -> iced::Result {
-    let config = Config::from_file().unwrap();
+    // TODO: Handle errors when trying to load config
+    let config = Config::load()
+        .expect("Should be able to load config (will be handled better in the future");
     let mut settings = iced::Settings::with_flags(config);
     settings.default_font = Some(&OP1_FONT_BYTES);
     settings.antialiasing = true;
     OPU::run(settings)
-}
-
-impl Config {
-    pub fn from_file() -> Result<Self, String> {
-        // Should be added to main
-        // TODO: Add to main once a replacement for impl_main is written
-        // TODO: Actually generate default and/or read from file
-        Ok(Self::default())
-    }
 }
 
 #[allow(dead_code)]
@@ -42,8 +34,8 @@ fn get_mode(_: &Config) -> iced::window::Mode {
 }
 
 #[allow(dead_code)]
-fn get_bg(_: &Config) -> iced::Color {
-    style::colors::hardware::LIGHT_GRAY
+fn get_bg(config: &Config) -> iced::Color {
+    config.theme().background_color()
 }
 
 #[allow(dead_code)]
