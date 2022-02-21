@@ -1,11 +1,16 @@
 use crate::file_utils::copy_items_with_progress;
 use crate::op1::OP1;
 use fs_extra::dir::TransitProcessResult;
-use std::collections::HashSet;
+use std::array::IntoIter;
+use std::collections::{HashMap, HashSet};
 use std::convert::TryFrom;
 use std::fmt::Debug;
+use std::iter::FromIterator;
 use std::path::{Path, PathBuf};
 use thiserror::Error;
+
+use glob::{glob, GlobError};
+use xxhash_rust::xxh3::xxh3_64;
 
 #[derive(Error, Debug)]
 pub enum Error {
@@ -52,6 +57,37 @@ impl OP1Dirs {
             .collect();
         // TODO: Handle errors
         copy_items_with_progress(&dirs_vec, dest_path, progress_handler);
+    }
+
+    pub fn iter(&self) -> std::array::IntoIter<&Path, 4_usize> {
+        [
+            self.album.as_path(),
+            self.drum.as_path(),
+            self.synth.as_path(),
+            self.tape.as_path(),
+        ]
+        .into_iter()
+    }
+
+    // TODO: Handle errors
+    "Some more thought needs to go into how these will be stored/retrieved. Could create a .opu file\
+    in the project dir that stores the metadata that goes into the opu_metadata.aiff file as well as\
+    the hashes, would be good for when compression is a thing"
+    pub fn get_hashes(&self) -> HashMap<PathBuf, u64> {
+        let glob_str = self.parent_dir.join("/**/*.aiff");
+        let f: Result<Vec<PathBuf>, GlobError> =
+            glob(&glob_str.into_os_string().into_string().unwrap())
+                .expect("Unable to glob")
+                .into_iter()
+                .collect();
+        f.unwrap()
+            .into_iter()
+            .map(|d| {
+                let relative_path = d.strip_prefix(&self.parent_dir).unwrap().to_owned();
+                let hash = xxh3_64(&std::fs::read(&d).unwrap());
+                (relative_path, hash)
+            })
+            .collect()
     }
 }
 

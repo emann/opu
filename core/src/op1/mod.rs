@@ -12,6 +12,8 @@ use std::fs::remove_dir_all;
 use std::{thread, time};
 use sysinfo::{DiskExt, SystemExt};
 
+use xxhash_rust::xxh3::xxh3_64;
+
 pub struct OP1 {
     pub op1_dirs: OP1Dirs,
     pub project: Option<Project>,
