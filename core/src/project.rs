@@ -23,7 +23,6 @@ pub enum Error {
 
 impl Project {
     pub fn get_all_projects_in_dir(path: PathBuf) -> Vec<Self> {
-        println!("{:?}", path);
         path.read_dir()
             .unwrap()
             .filter_map(|d| d.ok())

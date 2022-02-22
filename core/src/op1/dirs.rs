@@ -70,24 +70,33 @@ impl OP1Dirs {
     }
 
     // TODO: Handle errors
-    "Some more thought needs to go into how these will be stored/retrieved. Could create a .opu file\
-    in the project dir that stores the metadata that goes into the opu_metadata.aiff file as well as\
-    the hashes, would be good for when compression is a thing"
+    // Some more thought needs to go into how these will be stored/retrieved. Could create a .opu file
+    // in the project dir that stores the metadata that goes into the opu_metadata.aiff file as well as
+    // the hashes, would be good for when compression is a thing
+    //
+    // This should do the hashing in a thread so that it can be awaited onx
     pub fn get_hashes(&self) -> HashMap<PathBuf, u64> {
-        let glob_str = self.parent_dir.join("/**/*.aiff");
+        let glob_str = self.parent_dir.join("**/*.aif");
+        use std::time::Instant;
+
         let f: Result<Vec<PathBuf>, GlobError> =
             glob(&glob_str.into_os_string().into_string().unwrap())
                 .expect("Unable to glob")
                 .into_iter()
                 .collect();
-        f.unwrap()
+
+        let g = f
+            .expect("Got a glob error")
             .into_iter()
             .map(|d| {
                 let relative_path = d.strip_prefix(&self.parent_dir).unwrap().to_owned();
+                let now = Instant::now();
                 let hash = xxh3_64(&std::fs::read(&d).unwrap());
+                println!("{:?} - {:.2?}", relative_path, now.elapsed());
                 (relative_path, hash)
             })
-            .collect()
+            .collect();
+        g
     }
 }
 
