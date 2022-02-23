@@ -1,9 +1,12 @@
 use crate::metadata::{Error as MetadataError, Metadata};
 use crate::op1::dirs::{Error as OP1DirsError, OP1Dirs};
+use glob::{glob, GlobError};
+use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::fmt::Debug;
 use std::path::PathBuf;
 use thiserror::Error;
+use xxhash_rust::xxh3::xxh3_64;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Project {
@@ -22,6 +25,10 @@ pub enum Error {
 }
 
 impl Project {
+    pub fn new(op1_dirs: OP1Dirs, metadata: Metadata) -> Project {
+        Project { op1_dirs, metadata }
+    }
+
     pub fn get_all_projects_in_dir(path: PathBuf) -> Vec<Self> {
         path.read_dir()
             .unwrap()
@@ -35,8 +42,61 @@ impl Project {
         self.op1_dirs.parent_dir.clone()
     }
 
-    pub fn save(&mut self) {
+    pub fn save_metadata(&mut self) {
         self.metadata.save(&self.op1_dirs.parent_dir)
+    }
+
+    // TODO: Handle errors
+    // Some more thought needs to go into how these will be stored/retrieved. Could create a .opu file
+    // in the project dir that stores the metadata that goes into the opu_metadata.aiff file as well as
+    // the hashes, would be good for when compression is a thing
+    //
+    // This should do the hashing in a thread so that it can be awaited onx
+    fn get_hashes(&self) -> HashMap<PathBuf, u64> {
+        let glob_str = self.root_dir().join("**/*.aif");
+
+        let glob_matches: Result<Vec<PathBuf>, GlobError> =
+            glob(&glob_str.into_os_string().into_string().unwrap())
+                .expect("Unable to glob")
+                .into_iter()
+                .collect();
+        glob_matches
+            .expect("Got a glob error")
+            .into_iter()
+            .map(|d| {
+                let relative_path = d.strip_prefix(&self.root_dir()).unwrap().to_owned();
+                let hash = xxh3_64(&std::fs::read(&d).unwrap());
+                (relative_path, hash)
+            })
+            .collect()
+    }
+
+    pub fn get_changed_files(&self, other_project: &Project) -> Vec<PathBuf> {
+        use std::time::Instant;
+        let mut now = Instant::now();
+        println!("Getting my hashes");
+        let my_hashes = self.get_hashes();
+        println!("Done {:.2?}", now.elapsed());
+
+        now = Instant::now();
+        println!("Getting other hashes");
+        let other_hashes = other_project.get_hashes();
+        println!("Done {:.2?}", now.elapsed());
+        println!("Comparing hashes");
+        my_hashes
+            .into_iter()
+            .filter_map(|(relative_path, hash)| {
+                if other_hashes.get(&relative_path)? != &hash {
+                    Some(relative_path)
+                } else {
+                    None
+                }
+            })
+            .collect()
+    }
+
+    pub fn name(&self) -> &str {
+        &self.metadata.project_name
     }
 }
 
@@ -71,5 +131,11 @@ impl TryFrom<PathBuf> for Project {
         let metadata = Metadata::try_from(&op1_dirs)?;
 
         Ok(Project { op1_dirs, metadata })
+    }
+}
+
+impl AsRef<Metadata> for Project {
+    fn as_ref(&self) -> &Metadata {
+        &self.metadata
     }
 }

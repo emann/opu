@@ -152,6 +152,12 @@ impl Metadata {
     }
 }
 
+impl AsRef<Metadata> for Metadata {
+    fn as_ref(&self) -> &Metadata {
+        &self
+    }
+}
+
 impl TryFrom<PathBuf> for Metadata {
     type Error = Error;
 

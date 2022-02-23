@@ -1,9 +1,10 @@
-use crate::project::Project;
 use directories::ProjectDirs;
 use std::path::PathBuf;
 
+use crate::project::Project;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
+use std::convert::TryFrom;
 
 #[derive(Deserialize, Serialize, Clone)]
 pub struct CoreConfig {
@@ -70,11 +71,13 @@ where
         std::fs::write(Self::path(), toml_str)
     }
 
-    fn local_path_for_project(&self, project: Project) -> PathBuf {
+    fn local_path_for_project_name(&self, project_name: &str) -> PathBuf {
         let core_config: &CoreConfig = self.as_ref();
-        return core_config
-            .project_library_dir
-            .join(&project.metadata.project_name);
+        return core_config.project_library_dir.join(project_name);
+    }
+
+    fn get_local_project(&self, project_name: &str) -> Option<Project> {
+        Project::try_from(self.local_path_for_project_name(project_name)).ok()
     }
 
     fn project_library(&self) -> PathBuf {

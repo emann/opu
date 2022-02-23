@@ -21,33 +21,12 @@ mod style;
 
 flate!(static OP1_FONT_BYTES: [u8] from "assets/op1_font.ttf");
 
-fn test(config: &Config) {
-    let projects = Project::get_all_projects_in_dir(config.project_library());
-    for p in projects {
-        println!("Found project: {}", p);
-        use std::time::Instant;
-        let now = Instant::now();
-        let hashes = p.op1_dirs.get_hashes();
-        println!("Elapsed: {:.2?}", now.elapsed());
-        let hashes2 = hashes.clone();
-        println!("Hashes ({}): {:?}", hashes.len(), hashes);
-        let changed_files: Vec<PathBuf> = hashes
-            .into_iter()
-            .filter_map(|(relative_path, hash)| match hashes2.get(&relative_path) {
-                Some(hash) => None,
-                _ => Some(relative_path),
-            })
-            .collect();
-        println!("{:?}", changed_files);
-    }
-}
-
 fn main() -> iced::Result {
     // TODO: Handle errors when trying to load config
     let config = Config::load()
         .expect("Should be able to load config (will be handled better in the future");
 
-    test(&config);
+    // test(&config);
 
     let mut settings = iced::Settings::with_flags(config);
     settings.default_font = Some(&OP1_FONT_BYTES);

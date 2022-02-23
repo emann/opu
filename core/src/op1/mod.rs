@@ -1,22 +1,21 @@
-pub mod dirs;
-
-use std::path::PathBuf;
-
-use crate::file_utils::{copy_dir_contents_with_progress, copy_items_with_progress};
-use crate::op1::dirs::{Error as OP1DirsError, OP1Dirs, OP1Subdir};
-use crate::project::Project;
-use fs_extra::dir::{TransitProcess, TransitProcessResult};
-use std::collections::HashSet;
 use std::convert::TryFrom;
 use std::fs::remove_dir_all;
+use std::path::{Path, PathBuf};
 use std::{thread, time};
+
+use fs_extra::dir::TransitProcessResult;
 use sysinfo::{DiskExt, SystemExt};
 
-use xxhash_rust::xxh3::xxh3_64;
+use crate::file_utils::copy_items_with_progress;
+use crate::metadata::Error as MetadataError;
+use crate::metadata::Metadata;
+use crate::op1::dirs::{Error as OP1DirsError, OP1Dirs};
+use crate::project::Project;
+
+pub mod dirs;
 
 pub struct OP1 {
     pub op1_dirs: OP1Dirs,
-    pub project: Option<Project>,
 }
 
 impl OP1 {
@@ -52,27 +51,39 @@ impl OP1 {
         self.op1_dirs.parent_dir.clone()
     }
 
+    pub fn project(&self) -> Result<Project, MetadataError> {
+        Project::try_from(&self.op1_dirs)
+    }
+
     // TODO: Handle errors
-    // TODO: Only copy changed files
     /// Save project to device and to projects dir
-    pub fn save_project<F>(
-        &mut self,
-        dest: PathBuf,
-        dirs_to_save: HashSet<OP1Subdir>,
-        progress_handler: F,
-    ) where
+    pub fn save_as_new_project<F>(&mut self, metadata: Metadata, dest: PathBuf, progress_handler: F)
+    where
         F: FnMut(fs_extra::TransitProcess) -> TransitProcessResult,
     {
-        match self.project.clone() {
-            None => panic!("No project to save (eventually this will be an error to handle)"),
-            Some(mut project) => {
-                project.save();
+        let mut project = Project::new(self.op1_dirs.clone(), metadata);
+        project.save_metadata();
 
-                // TODO: Handle errors
-                remove_dir_all(dest.clone());
-                self.op1_dirs.copy_to(dest, dirs_to_save, progress_handler);
-            }
-        }
+        remove_dir_all(&dest);
+        let dirs: Vec<&Path> = self.op1_dirs.iter().collect();
+        println!("Dirs: {:?}", dirs);
+        copy_items_with_progress(&dirs, dest, progress_handler);
+    }
+
+    // TODO: Handle errors
+    /// Save project to device and to projects dir
+    pub fn save_changed_files<F>(&mut self, local_project: Project, progress_handler: F)
+    where
+        F: FnMut(fs_extra::TransitProcess) -> TransitProcessResult,
+    {
+        let mut op1_project = self
+            .project()
+            .expect("Must have a project to call this function");
+        op1_project.save_metadata(); // Update last saved time
+        let files_to_copy = op1_project.get_changed_files(&local_project);
+        println!("Changed files: {:?}", files_to_copy);
+        // remove_dir_all(dest.clone());
+        copy_items_with_progress(&files_to_copy, local_project.root_dir(), progress_handler);
     }
 
     // TODO: Some error handling
@@ -93,10 +104,7 @@ impl OP1 {
 impl From<OP1Dirs> for OP1 {
     fn from(op1_dirs: OP1Dirs) -> Self {
         // TODO: Better error handling in case of corruption
-        Self {
-            project: Project::try_from(&op1_dirs).ok(),
-            op1_dirs,
-        }
+        Self { op1_dirs }
     }
 }
 
