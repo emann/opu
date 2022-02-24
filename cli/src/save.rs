@@ -19,36 +19,10 @@ pub fn collect_args_and_run(
             .template("{spinner:.green} [{bar:.cyan/blue}] {bytes}/{total_bytes}"),
     );
 
-    match op1.project() {
-        Err(_) => {
-            let project_name = unwrap_or_prompt_input(
-                arg_matches.and_then(|am| am.value_of("name")),
-                "Project Name: ",
-            )?;
-            let metadata = Metadata::new(
-                project_name,
-                TempoSettings::default(),
-                MixerSettings::default(),
-            );
-            let local_path = config.local_path_for_project_name(&metadata.project_name);
-            // Get path for local project with this name
-            op1.save_as_new_project(metadata, local_path, progress_callback2(pb));
-        }
-        Ok(project) => {
-            println!("Found project called {} on device", project.name());
-            println!(
-                "LP: {:?}",
-                config.local_path_for_project_name(project.name())
-            );
-            op1.save_changed_files(
-                // TODO: Handle errors
-                config
-                    .get_local_project(project.name())
-                    .expect("No local project"),
-                progress_callback2(pb),
-            )
-        }
-    };
+    let local_path =
+        config.local_path_for_project_name(&op1.project().unwrap().metadata.project_name);
+    // Get path for local project with this name
+    op1.save_project(local_path, progress_callback2(pb));
 
     Ok(())
 }

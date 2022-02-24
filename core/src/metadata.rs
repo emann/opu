@@ -145,7 +145,6 @@ impl Metadata {
         // TODO: Handle errors
         create_all(path.parent().expect("Parent must exist"), true)
             .expect("Must be able to create opu metadata parent dirs");
-        println!("{:?}", path);
         File::create(path)
             .unwrap()
             .write_all(&metadata_file_bytes)

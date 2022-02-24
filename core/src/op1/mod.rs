@@ -8,7 +8,6 @@ use sysinfo::{DiskExt, SystemExt};
 
 use crate::file_utils::copy_items_with_progress;
 use crate::metadata::Error as MetadataError;
-use crate::metadata::Metadata;
 use crate::op1::dirs::{Error as OP1DirsError, OP1Dirs};
 use crate::project::Project;
 
@@ -57,37 +56,16 @@ impl OP1 {
 
     // TODO: Handle errors
     /// Save project to device and to projects dir
-    pub fn save_as_new_project<F>(&mut self, metadata: Metadata, dest: PathBuf, progress_handler: F)
+    pub fn save_project<P>(&mut self, dest: PathBuf, progress_handler: P)
     where
-        F: FnMut(fs_extra::TransitProcess) -> TransitProcessResult,
+        P: FnMut(fs_extra::TransitProcess) -> TransitProcessResult,
     {
-        let mut project = Project::new(self.op1_dirs.clone(), metadata);
+        let mut project = self.project().expect("Project must be available");
         project.save_metadata();
-        // TODO: Check a project with this name doesn't already exist
         create_dir_all(&dest).expect("Failed to create dir");
 
         let dirs: Vec<&Path> = self.op1_dirs.iter().collect();
-        println!("Dirs: {:?}", dirs);
-        use std::time::Instant;
-        let now = Instant::now();
         copy_items_with_progress(&dirs, dest, progress_handler).expect("Failed to copy items");
-        println!("Save time: {:.2?}", now.elapsed());
-    }
-
-    // TODO: Handle errors
-    /// Save project to device and to projects dir
-    pub fn save_changed_files<F>(&mut self, local_project: Project, progress_handler: F)
-    where
-        F: FnMut(fs_extra::TransitProcess) -> TransitProcessResult,
-    {
-        let mut op1_project = self
-            .project()
-            .expect("Must have a project to call this function");
-        op1_project.save_metadata(); // Update last saved time
-        let files_to_copy = op1_project.get_changed_files(&local_project);
-        println!("Changed files: {:?}", files_to_copy);
-        copy_items_with_progress(&files_to_copy, local_project.root_dir(), progress_handler)
-            .expect("Failed to copy items");
     }
 
     // TODO: Some error handling

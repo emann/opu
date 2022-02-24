@@ -16,5 +16,3 @@ serde_json = "1.0"
 directories = "4.0.1"
 thiserror = "1.0.25"
 memchr = "2.4.1"
-xxhash-rust = { version="0.8.3", features=["xxh3"] }
-glob = "0.3.0"
