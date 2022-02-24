@@ -143,7 +143,8 @@ impl Metadata {
 
         let path = Metadata::get_file_path(parent_dir);
         // TODO: Handle errors
-        create_all(path.parent().expect("Parent must exist"), true);
+        create_all(path.parent().expect("Parent must exist"), true)
+            .expect("Must be able to create opu metadata parent dirs");
         println!("{:?}", path);
         File::create(path)
             .unwrap()

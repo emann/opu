@@ -7,7 +7,6 @@ use clap::ArgMatches;
 use indicatif::{ProgressBar, ProgressStyle};
 use opu_core::metadata::{Metadata, MixerSettings, TempoSettings};
 use opu_core::op1::OP1;
-use opu_core::project::Project;
 
 pub fn collect_args_and_run(
     config: Config,

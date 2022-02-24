@@ -87,8 +87,10 @@ impl Project {
             .into_iter()
             .filter_map(|(relative_path, hash)| {
                 if other_hashes.get(&relative_path)? != &hash {
-                    Some(relative_path)
+                    // Relative path found and hash is different, this file has changed
+                    Some(self.root_dir().join(relative_path))
                 } else {
+                    // Relative path found and hash is identical, no changes
                     None
                 }
             })

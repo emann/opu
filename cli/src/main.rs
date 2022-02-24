@@ -2,8 +2,6 @@
 #![allow(clippy::multiple_crate_versions)]
 #![forbid(unsafe_code)]
 
-use std::{thread, time};
-
 use clap::{App, Arg, ArgGroup};
 use color_eyre::eyre::Result;
 use console::style;
@@ -13,7 +11,7 @@ use indicatif::{ProgressBar, ProgressStyle};
 use crate::config::Config;
 use commands::COMMANDS;
 use opu_core::op1::OP1;
-use opu_core::{CoreConfig, OPUConfig};
+use opu_core::OPUConfig;
 use prompt::unwrap_and_validate_or_prompt_select;
 
 mod commands;

@@ -1,5 +1,5 @@
 use std::convert::TryFrom;
-use std::fs::remove_dir_all;
+use std::fs::{create_dir_all, remove_dir_all};
 use std::path::{Path, PathBuf};
 use std::{thread, time};
 
@@ -63,11 +63,15 @@ impl OP1 {
     {
         let mut project = Project::new(self.op1_dirs.clone(), metadata);
         project.save_metadata();
+        // TODO: Check a project with this name doesn't already exist
+        create_dir_all(&dest).expect("Failed to create dir");
 
-        remove_dir_all(&dest);
         let dirs: Vec<&Path> = self.op1_dirs.iter().collect();
         println!("Dirs: {:?}", dirs);
-        copy_items_with_progress(&dirs, dest, progress_handler);
+        use std::time::Instant;
+        let now = Instant::now();
+        copy_items_with_progress(&dirs, dest, progress_handler).expect("Failed to copy items");
+        println!("Save time: {:.2?}", now.elapsed());
     }
 
     // TODO: Handle errors
@@ -82,8 +86,8 @@ impl OP1 {
         op1_project.save_metadata(); // Update last saved time
         let files_to_copy = op1_project.get_changed_files(&local_project);
         println!("Changed files: {:?}", files_to_copy);
-        // remove_dir_all(dest.clone());
-        copy_items_with_progress(&files_to_copy, local_project.root_dir(), progress_handler);
+        copy_items_with_progress(&files_to_copy, local_project.root_dir(), progress_handler)
+            .expect("Failed to copy items");
     }
 
     // TODO: Some error handling
@@ -92,12 +96,13 @@ impl OP1 {
         F: FnMut(fs_extra::TransitProcess) -> TransitProcessResult,
     {
         // TODO: Handle errors
-        remove_dir_all(self.mount_point());
+        remove_dir_all(self.mount_point()).expect("Failed to remove dirs");
         println!("removed!");
 
         let dirs: Vec<PathBuf> = project.op1_dirs.into_iter().collect();
         // TODO: Handle errors
-        copy_items_with_progress(&dirs, self.mount_point(), progress_handler);
+        copy_items_with_progress(&dirs, self.mount_point(), progress_handler)
+            .expect("Failed to copy items");
     }
 }
 
