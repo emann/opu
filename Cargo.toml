@@ -2,5 +2,5 @@
 resolver = "2"
 
 members = [
-    "core", "cli", "gui"
+    "core", "cli", "gui", "macros", "macro-utils"
 ]

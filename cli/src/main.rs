@@ -12,6 +12,8 @@ use crate::config::Config;
 use commands::COMMANDS;
 use opu_core::op1::OP1;
 use opu_core::OPUConfig;
+use opu_macro_utils::FromCLIInput;
+use opu_macros::FromCLIInput;
 use prompt::unwrap_and_validate_or_prompt_select;
 
 mod commands;
@@ -24,9 +26,43 @@ mod utils;
 // TODO: Config.toml, backup dir
 // TODO: Daemon to automatically open when op-1 detected
 
+#[derive(FromCLIInput, Debug)]
+struct Test2 {
+    #[from_cli_input(prompt = "Enter a uint!", default = "7")]
+    uint: u8,
+    #[from_cli_input(prompt = "Enter an int!")]
+    int: i8,
+    #[from_cli_input(prompt = "Enter a float!", default = "3.14")]
+    float: f32,
+    #[from_cli_input(prompt = "Enter a str!")]
+    string: String,
+    #[from_cli_input(prompt = "Enter a bool!")]
+    bool: bool,
+}
+
+#[derive(FromCLIInput, Debug)]
+struct Test {
+    #[from_cli_input(prompt = "(Top) Enter a uint!", default = "7")]
+    uint: u8,
+    #[from_cli_input(prompt = "(Top) enum")]
+    enumt: EnumTest,
+    #[from_cli_input(prompt = "(Top) sub struct")]
+    test2: Test2,
+}
+
+#[derive(FromCLIInput, Debug)]
+enum EnumTest {
+    A,
+    B,
+    C,
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
     color_eyre::install().expect("Could not set up error handling with color_eyre");
+
+    let t = Test::from_cli_input("Enter data for Test Struct", None);
+    println!("{:?}", t);
 
     let config: Config = Config::load()?;
 

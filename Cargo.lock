@@ -1900,6 +1900,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "68f2d64f2edebec4ce84ad108148e67e1064789bee435edc5b60ad398714a3a9"
 
 [[package]]
+name = "itertools"
+version = "0.10.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a9a9d19fa1e79b6215ff29b9d6880b706147f16e9b1dbb1e4e5947b5b02bc5e3"
+dependencies = [
+ "either",
+]
+
+[[package]]
 name = "itoa"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2553,6 +2562,8 @@ dependencies = [
  "fs_extra",
  "indicatif",
  "opu-core",
+ "opu-macros",
+ "opu_macro_utils",
  "serde",
  "tokio",
 ]
@@ -2587,6 +2598,37 @@ dependencies = [
  "reqwest",
  "serde",
  "triax_ui",
+]
+
+[[package]]
+name = "opu-macros"
+version = "0.1.0"
+dependencies = [
+ "color-eyre",
+ "console 0.14.1",
+ "dialoguer",
+ "indicatif",
+ "itertools",
+ "log",
+ "opu_macro_utils",
+ "proc-macro-crate 1.1.2",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "opu_macro_utils"
+version = "0.1.0"
+dependencies = [
+ "color-eyre",
+ "console 0.14.1",
+ "dialoguer",
+ "indicatif",
+ "log",
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
