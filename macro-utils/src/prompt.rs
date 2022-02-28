@@ -1,8 +1,6 @@
 use std::fmt::{Debug, Display};
-use std::ops::Index;
 use std::str::FromStr;
 
-use color_eyre::eyre::{eyre, Result, WrapErr};
 use console::Term;
 use dialoguer::theme::ColorfulTheme;
 use dialoguer::{Confirm, Input, Select};

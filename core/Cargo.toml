@@ -4,6 +4,12 @@ version = "0.1.0"
 authors = ["Ethan Mann <emanndev7@gmail.com"]
 edition = "2021"
 
+[features]
+default = []
+gui = ["opu-macros/gui", "opu_macro_utils/gui"]
+cli = ["opu-macros/cli", "opu_macro_utils/cli"]
+
+
 [dependencies]
 toml = "0.5.8"
 sysinfo = "0.18.2"
@@ -16,3 +22,7 @@ serde_json = "1.0"
 directories = "4.0.1"
 thiserror = "1.0.25"
 memchr = "2.4.1"
+opu-macros = {path = "../macros"}
+opu_macro_utils = {path = "../macro-utils"}
+num = "0.4.0"
+bounded-integer = { version="0.5.1", features=["macro"] }

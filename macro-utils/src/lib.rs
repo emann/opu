@@ -4,6 +4,8 @@
 #![warn(clippy::complexity)]
 #![warn(clippy::perf)]
 
+use std::fmt::Debug;
+
 pub mod prompt;
 
 pub trait FromCLIInput
@@ -22,6 +24,24 @@ impl FromCLIInput for String {
 impl FromCLIInput for bool {
     fn from_cli_input(prompt: &str, default: Option<Self>) -> Self {
         prompt::get_bool(prompt, default)
+    }
+}
+
+impl<T: FromCLIInput + Debug + Copy, const N: usize> FromCLIInput for [T; N] {
+    fn from_cli_input(prompt: &str, default: Option<Self>) -> Self {
+        let default_values: [Option<T>; N] = match default {
+            Some(default_vals) => default_vals.map(Some),
+            None => [None; N],
+        };
+        let mut values: Vec<T> = Vec::with_capacity(N);
+        for (i, default_value) in default_values.into_iter().enumerate() {
+            let extended_prompt = format!("{} ({})", prompt, i);
+            let value: T = FromCLIInput::from_cli_input(&extended_prompt, default_value);
+            values.push(value);
+        }
+        values
+            .try_into()
+            .expect("The number of values obtained should match what is expected")
     }
 }
 

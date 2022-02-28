@@ -53,17 +53,25 @@ pub(crate) fn get_enum_from_cli_input_impl(
     let prompt_select_path = get_prompt_select_path();
 
     let enum_name = &input.ident;
-    let (mut variant_names, match_selected_variant_arms): (Vec<TokenStream>, Vec<TokenStream>) =
+    let (variant_names, match_selected_variant_arms): (Vec<TokenStream>, Vec<TokenStream>) =
         data.variants
             .iter()
             .map(|v| {
                 let ident_name = v.ident.to_string();
                 let variant_name = quote! { #ident_name };
 
-                let match_selected_variant_arm = quote! {
-                    // "A" => MyEnum::A
-                    #variant_name => #enum_name::#v,
+                let match_selected_variant_arm = if v.fields.is_empty() {
+                    quote! {
+                        // "A" => MyEnum::A
+                        #variant_name => #enum_name::#v,
+                    }
+                } else {
+                    quote! {
+                        // "B" => MyEnum::B(FromCLIInput::from_cli_input())
+                        #variant_name => #enum_name::#v(#from_cli_input_trait_path::from_cli_input("", None)),
+                    }
                 };
+
 
                 (variant_name, match_selected_variant_arm)
             })
@@ -92,6 +100,7 @@ pub(crate) fn get_enum_from_cli_input_impl(
 pub(crate) struct ParsedField<'a> {
     pub(crate) prompt: Option<String>,
     pub(crate) default: Option<Expr>,
+    pub(crate) skip_prompt_and_use_default: bool,
     pub(crate) ident: &'a Ident,
     pub(crate) field: &'a Field,
 }
@@ -103,6 +112,7 @@ impl<'a> TryFrom<&'a Field> for ParsedField<'a> {
     fn try_from(field: &'a Field) -> syn::Result<Self> {
         let mut prompt = None;
         let mut default = None;
+        let mut skip_prompt_and_use_default = false;
         let ident = field
             .ident
             .as_ref()
@@ -128,6 +138,10 @@ impl<'a> TryFrom<&'a Field> for ParsedField<'a> {
                                     ))
                                 }
                             },
+                            "skip_prompt_and_use_default" => match &kv.lit {
+                                Lit::Bool(lit_bool) => skip_prompt_and_use_default = lit_bool.value,
+                                _ => return Err(syn::Error::new(kv.lit.span(), "expected a bool")),
+                            },
                             _ => {}
                         }
                     }
@@ -138,6 +152,7 @@ impl<'a> TryFrom<&'a Field> for ParsedField<'a> {
         Ok(Self {
             prompt,
             default,
+            skip_prompt_and_use_default,
             ident,
             field,
         })
@@ -221,13 +236,24 @@ fn impl_from_cli_input_for_struct(
                 .clone()
                 .unwrap_or_else(|| String::from("Default prompt"));
             // TODO: Fix default str values
-            match &pf.default {
-                Some(expr_for_default_value) => Ok(quote! {
-                    let #field_ident: #field_type = #from_cli_input_trait_path::from_cli_input(&#field_prompt, Some(#expr_for_default_value));
-                }),
-                None => Ok(quote! {
-                    let #field_ident: #field_type = #from_cli_input_trait_path::from_cli_input(&#field_prompt, None);
-                })
+            if pf.skip_prompt_and_use_default {
+                match &pf.default {
+                    Some(expr_for_default_value) => Ok(quote! {
+                        let #field_ident: #field_type = #expr_for_default_value;
+                    }),
+                    // TODO make this a real error
+                    None => panic!("No default provided when skip_prompt_and_use_default=true.")
+                }
+            }
+            else {
+                match &pf.default {
+                    Some(expr_for_default_value) => Ok(quote! {
+                        let #field_ident: #field_type = #from_cli_input_trait_path::from_cli_input(&#field_prompt, Some(#expr_for_default_value));
+                    }),
+                        None => Ok(quote! {
+                        let #field_ident: #field_type = #from_cli_input_trait_path::from_cli_input(&#field_prompt, None);
+                    })
+                }
             }
 
 
@@ -241,8 +267,9 @@ fn impl_from_cli_input_for_struct(
 
     Ok(quote! {
         impl #from_cli_input_trait_path for #ident {
-            fn from_cli_input(_prompt: &str, _default: Option<Self>) -> Self {
+            fn from_cli_input(prompt: &str, _default: Option<Self>) -> Self {
                 // ::log::debug!("Creating a {} from CLI input", ::std::stringify!(#ident));
+                println!("{}", prompt);
                 #(#field_prompts)*
                 #build_struct
             }

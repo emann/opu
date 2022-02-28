@@ -1,3 +1,6 @@
+mod mixer_settings;
+mod tempo_settings;
+
 use core::mem::size_of;
 use std::convert::{TryFrom, TryInto};
 use std::fs::{read, File};
@@ -9,10 +12,13 @@ use memchr::memmem;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
+use crate::metadata::mixer_settings::MixerSettings;
+use crate::metadata::tempo_settings::TempoSettings;
 use crate::op1::dirs::OP1Dirs;
 use crate::op1::OP1;
 use fs_extra::dir::create_all;
 use include_flate::flate;
+use opu_macros::FromCLIInput;
 
 flate!(static BASE_METADATA_FILE_BYTES: [u8] from "assets/opu_metadata.aif");
 
@@ -43,59 +49,18 @@ pub enum Error {
     FailedToParseJSON(#[from] serde_json::Error),
 }
 
-#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
-struct ChannelMixSettings {
-    level: u8, // 0-99
-    pan: i8,   // Estimate -100 (all the way left) to 100 (all the way to the right)
-}
-
-#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
-struct EQSettings {
-    low: u8,  // Estimate 0-100
-    mid: u8,  // Estimate 0-100
-    high: u8, // Estimate 0-100
-}
-
-// TODO: (maybe?) Create an enum of the effects with anonymous structs with better named fields
-#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
-struct MasterEffectSettings {
-    blue: u8,   // Estimate 0-100
-    green: u8,  // Estimate 0-100
-    white: u8,  // Estimate 0-100
-    orange: u8, // Estimate 0-100
-}
-
-#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
-struct MasterOutSettings {
-    left_balance: u8,  // 0-99
-    right_balance: u8, // 0-99
-    drive: u8,         //0-99
-    release: u8,       // 0-300 (I think)
-}
-
-#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
-pub struct MixerSettings {
-    per_channel_mix_settings: [ChannelMixSettings; 4],
-    eq_settings: EQSettings,
-    master_effect_settings: MasterEffectSettings,
-    master_out_settings: MasterOutSettings,
-}
-
-#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq)]
-pub struct TempoSettings {
-    bpm: f32,
-    tape_speed: i8,
-}
-
-impl Eq for TempoSettings {}
-
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, FromCLIInput)]
 pub struct Metadata {
+    #[from_cli_input(prompt = "Project Name")]
     pub project_name: String,
-    pub last_saved: DateTime<Local>,
-    tempo_settings: TempoSettings,
-    mixer_settings: MixerSettings,
+    #[from_cli_input(skip_prompt_and_use_default = true, default = "Local::now()")]
     created: DateTime<Local>,
+    #[from_cli_input(skip_prompt_and_use_default = true, default = "Local::now()")]
+    pub last_saved: DateTime<Local>,
+    #[from_cli_input(prompt = "=== Tempo Settings === ")]
+    tempo_settings: TempoSettings,
+    #[from_cli_input(prompt = "=== Mixer Settings === ")]
+    mixer_settings: MixerSettings,
 }
 
 impl Metadata {

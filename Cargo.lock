@@ -249,6 +249,27 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0d8c1fef690941d3e7788d328517591fecc684c084084702d6ff1641e993699a"
 
 [[package]]
+name = "bounded-integer"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a59e286bfc15a6570cadaa210348844dfe500d1c5a1b37aaa87eafc2da1cae8a"
+dependencies = [
+ "bounded-integer-macro",
+]
+
+[[package]]
+name = "bounded-integer-macro"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b28711235309f2ebe42cea2871e0c7c5025aed8fd517be92c5409eeca6f0a9ae"
+dependencies = [
+ "num-bigint",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "bumpalo"
 version = "2.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2408,12 +2429,69 @@ dependencies = [
 ]
 
 [[package]]
+name = "num"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "43db66d1170d347f9a065114077f7dccb00c1b9478c89384490a3425279a4606"
+dependencies = [
+ "num-bigint",
+ "num-complex",
+ "num-integer",
+ "num-iter",
+ "num-rational",
+ "num-traits",
+]
+
+[[package]]
+name = "num-bigint"
+version = "0.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f93ab6289c7b344a8a9f60f88d80aa20032336fe78da341afc91c8a2341fc75f"
+dependencies = [
+ "autocfg",
+ "num-integer",
+ "num-traits",
+]
+
+[[package]]
+name = "num-complex"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "26873667bbbb7c5182d4a37c1add32cdf09f841af72da53318fdb81543c15085"
+dependencies = [
+ "num-traits",
+]
+
+[[package]]
 name = "num-integer"
 version = "0.1.44"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d2cc698a63b549a70bc047073d2949cce27cd1c7b0a4a862d08a8031bc2801db"
 dependencies = [
  "autocfg",
+ "num-traits",
+]
+
+[[package]]
+name = "num-iter"
+version = "0.1.42"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b2021c8337a54d21aca0d59a92577a029af9431cb59b909b03252b9c164fad59"
+dependencies = [
+ "autocfg",
+ "num-integer",
+ "num-traits",
+]
+
+[[package]]
+name = "num-rational"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d41702bd167c2df5520b384281bc111a4b5efcf7fbc4c9c222c815b07e0a6a6a"
+dependencies = [
+ "autocfg",
+ "num-bigint",
+ "num-integer",
  "num-traits",
 ]
 
@@ -2572,11 +2650,15 @@ dependencies = [
 name = "opu-core"
 version = "0.1.0"
 dependencies = [
+ "bounded-integer",
  "chrono",
  "directories",
  "fs_extra",
  "include-flate",
  "memchr",
+ "num",
+ "opu-macros",
+ "opu_macro_utils",
  "serde",
  "serde_json",
  "sysinfo",
@@ -2604,10 +2686,6 @@ dependencies = [
 name = "opu-macros"
 version = "0.1.0"
 dependencies = [
- "color-eyre",
- "console 0.14.1",
- "dialoguer",
- "indicatif",
  "itertools",
  "log",
  "opu_macro_utils",
@@ -2621,14 +2699,9 @@ dependencies = [
 name = "opu_macro_utils"
 version = "0.1.0"
 dependencies = [
- "color-eyre",
  "console 0.14.1",
  "dialoguer",
  "indicatif",
- "log",
- "proc-macro2",
- "quote",
- "syn",
 ]
 
 [[package]]

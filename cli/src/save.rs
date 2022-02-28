@@ -5,7 +5,7 @@ use crate::prompt::unwrap_or_prompt_input;
 use crate::utils::progress_callback2;
 use clap::ArgMatches;
 use indicatif::{ProgressBar, ProgressStyle};
-use opu_core::metadata::{Metadata, MixerSettings, TempoSettings};
+use opu_core::metadata::Metadata;
 use opu_core::op1::OP1;
 
 pub fn collect_args_and_run(
