@@ -1,86 +1,85 @@
-use crate::Config;
-use iced::{button, Alignment, Button, Column, Command, Element, Row, Text};
+use iced::pure::widget::Element;
+use iced::pure::{column, container, text};
+use iced::{Alignment, Canvas, Command, Length, Text};
+use iced_lazy::pure::{self, Component};
+use iced_native::text;
+
 use opu_core::op1::OP1;
 
-pub enum Message {
-    SavePressed,
-    LoadPressed,
-    PatchManagerPressed,
-    SettingsPressed,
+use crate::loading::Loading;
+use crate::{style, Config};
+
+pub struct SelectOperation<Message> {
+    config: Config,
+    op1: OP1,
+    // loading: Loading,
+    on_op1_found: Box<dyn Fn(OP1) -> Message>,
 }
 
-pub struct SelectOperation {
-    pub(crate) config: Config,
-    pub(crate) op1: OP1,
-    save_button: button::State,
-    load_button: button::State,
-    patch_manager_button: button::State,
-    settings_button: button::State,
+pub fn select_operation<Message>(
+    config: Config,
+    op1: OP1,
+    on_op1_found: impl Fn(OP1) -> Message + 'static,
+) -> SelectOperation<Message> {
+    SelectOperation::new(config, op1, on_op1_found)
 }
 
-impl SelectOperation {
-    fn new(config: Config) -> Self {
-        SelectOperation {
+#[derive(Debug, Clone)]
+pub enum Event {
+    Tick,
+}
+
+impl<Message> SelectOperation<Message> {
+    pub fn new(config: Config, op1: OP1, on_op1_found: impl Fn(OP1) -> Message + 'static) -> Self {
+        Self {
             config,
-            op1: OP1::get_connected_op1_blocking(), // TODO: Just get it, error if none found
-            save_button: button::State::default(),
-            load_button: button::State::default(),
-            patch_manager_button: button::State::default(),
-            settings_button: button::State::default(),
+            op1,
+            // loading: Loading::default(),
+            on_op1_found: Box::new(on_op1_found),
         }
     }
 }
 
-impl Stage for SelectOperation {
-    type Application = crate::OPU;
-    type Message = Message;
+impl<Message, Renderer> Component<Message, Renderer> for SelectOperation<Message>
+where
+    Renderer: text::Renderer + 'static,
+{
+    type State = ();
+    type Event = Event;
 
-    fn new(
-        _config: &<<Self as Stage>::Application as iced::Application>::Flags,
-    ) -> (Self, Command<Message>) {
-        unimplemented!("use TryFrom<WaitForOP1ToBeConnected> instead");
+    fn update(&mut self, _state: &mut Self::State, event: Event) -> Option<Message> {
+        match event {
+            Event::Tick => {
+                // self.loading.tick();
+                None
+            }
+        }
     }
 
-    fn title(&self) -> String {
-        String::from("Select Operation")
-    }
+    fn view(&self, _state: &Self::State) -> Element<Event, Renderer> {
+        // let loading = Canvas::new(&mut self.loading)
+        //     .width(Length::Units(150))
+        //     .height(Length::Units(50));
 
-    fn update(
-        &mut self,
-        _message: Self::Message,
-        _clipboard: &mut iced::Clipboard,
-    ) -> Command<Message> {
-        Command::none()
-    }
-
-    fn view(&mut self) -> Element<Self::Message> {
-        Row::new()
+        column()
+            .padding(20)
+            .align_items(Alignment::Center)
             .push(
-                Column::new()
-                    .padding(20)
-                    .Alignment_items(Alignment::Center)
-                    .push(
-                        Button::new(&mut self.save_button, Text::new("Save"))
-                            .on_press(Message::LoadPressed),
-                    )
-                    .push(
-                        Button::new(&mut self.load_button, Text::new("Load"))
-                            .on_press(Message::LoadPressed),
-                    ),
+                text(String::from("Waiting for OP-1 to be connected"))
+                    .size(50)
+                    .color(self.config.theme().text_color()),
             )
-            .push(
-                Column::new()
-                    .padding(20)
-                    .Alignment_items(Alignment::Center)
-                    .push(
-                        Button::new(&mut self.patch_manager_button, Text::new("Patches"))
-                            .on_press(Message::LoadPressed),
-                    )
-                    .push(
-                        Button::new(&mut self.settings_button, Text::new("Settings"))
-                            .on_press(Message::LoadPressed),
-                    ),
-            )
+            // .push(loading)
             .into()
+    }
+}
+
+impl<'a, Message, Renderer> From<SelectOperation<Message>> for Element<'a, Message, Renderer>
+where
+    Message: 'a,
+    Renderer: 'static + iced_native::text::Renderer,
+{
+    fn from(numeric_input: SelectOperation<Message>) -> Self {
+        pure::component(numeric_input)
     }
 }

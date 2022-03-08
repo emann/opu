@@ -9,6 +9,7 @@ use iced::{Command, Length, Sandbox};
 use include_flate::flate;
 use opu_core::config::OPUConfig;
 
+use crate::components::select_operation::select_operation;
 use crate::components::wait_for_op1::wait_for_op1;
 use crate::components::Page;
 use crate::config::Config;
@@ -82,7 +83,14 @@ impl Application for OPU {
 
     fn update(&mut self, message: Message) -> Command<Self::Message> {
         match message {
-            Message::OP1Found(op1) => Command::none(),
+            Message::OP1Found(op1) => {
+                self.page = Page::SelectOperation(select_operation(
+                    self.config.clone(),
+                    op1,
+                    Message::OP1Found,
+                ));
+                Command::none()
+            }
         }
     }
 
