@@ -23,6 +23,8 @@ impl StyleSheet for CustomStyle {
             width: Length::Fill,
             height: Length::Fill,
             selected_background: crate::style::colors::hardware::GREEN.into(),
+            text_size: 36,
+            background: crate::style::colors::hardware::LIGHT_GRAY.into(),
             ..Default::default()
         }
     }
@@ -105,23 +107,34 @@ impl Stage for Load {
             CustomStyle::style(),
         );
 
-        let left_column = Column::new()
+        let row = Row::new()
             .width(Length::Fill)
             .align_items(Align::Center)
             .spacing(10)
-            .push(Text::new("Pick a Project to Load"))
             .push(
                 Container::new(pick_list)
-                    .width(Length::Units(200))
-                    .height(Length::Units(200)),
+                    .width(Length::Fill)
+                    .height(Length::Fill),
+            )
+            .push(
+                Container::new(
+                    Text::new(format!("{}", self.selected_project))
+                        .color(self.config.theme().text_color()),
+                )
+                .width(Length::Fill)
+                .height(Length::Fill),
             );
 
-        let content = Row::new()
+        let content = Column::new()
             .width(Length::Fill)
             .align_items(Align::Center)
             .spacing(10)
-            .push(left_column)
-            .push(Text::new(format!("{}", self.selected_project)));
+            .push(
+                Text::new("Select a Project to Load")
+                    .color(self.config.theme().text_color())
+                    .size(24),
+            )
+            .push(row);
 
         Container::new(content)
             .width(Length::Fill)
