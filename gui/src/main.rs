@@ -10,7 +10,6 @@ use opu_core::config::OPUConfig;
 use triax_ui::Stage as StageImpl;
 
 use crate::config::Config;
-use opu_core::metadata::{Metadata, MixerSettings, TempoSettings};
 use opu_core::project::Project;
 use std::path::PathBuf;
 
@@ -25,8 +24,6 @@ fn main() -> iced::Result {
     // TODO: Handle errors when trying to load config
     let config = Config::load()
         .expect("Should be able to load config (will be handled better in the future");
-
-    // test(&config);
 
     let mut settings = iced::Settings::with_flags(config);
     settings.default_font = Some(&OP1_FONT_BYTES);
@@ -59,7 +56,9 @@ triax_ui::triax_application!(
     stages(
         stages::WaitForOP1ToBeConnected -> stages::SelectOperation,
         stages::SelectOperation -> stages::Load,
-        stages::Load -> stages::SelectOperation
+        stages::Load -> stages::SelectOperation,
+        stages::SelectOperation -> stages::Save,
+        stages::Save -> stages::SelectOperation
     );
     flags(Config, Config::from_file);
 );

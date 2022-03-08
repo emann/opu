@@ -1131,6 +1131,45 @@ dependencies = [
 ]
 
 [[package]]
+name = "fruid"
+version = "0.0.1"
+dependencies = [
+ "fruid_cli",
+ "fruid_iced",
+ "fruid_macros",
+ "serde",
+]
+
+[[package]]
+name = "fruid_cli"
+version = "0.0.1"
+dependencies = [
+ "console 0.14.1",
+ "dialoguer",
+ "indicatif",
+]
+
+[[package]]
+name = "fruid_iced"
+version = "0.0.1"
+dependencies = [
+ "iced",
+]
+
+[[package]]
+name = "fruid_macros"
+version = "0.1.0"
+dependencies = [
+ "fruid_cli",
+ "itertools",
+ "log",
+ "proc-macro-crate 1.1.2",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "fs_extra"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2637,11 +2676,10 @@ dependencies = [
  "color-eyre",
  "console 0.14.1",
  "dialoguer",
+ "fruid",
  "fs_extra",
  "indicatif",
  "opu-core",
- "opu-macros",
- "opu_macro_utils",
  "serde",
  "tokio",
 ]
@@ -2653,12 +2691,11 @@ dependencies = [
  "bounded-integer",
  "chrono",
  "directories",
+ "fruid",
  "fs_extra",
  "include-flate",
  "memchr",
  "num",
- "opu-macros",
- "opu_macro_utils",
  "serde",
  "serde_json",
  "sysinfo",
@@ -2680,28 +2717,6 @@ dependencies = [
  "reqwest",
  "serde",
  "triax_ui",
-]
-
-[[package]]
-name = "opu-macros"
-version = "0.1.0"
-dependencies = [
- "itertools",
- "log",
- "opu_macro_utils",
- "proc-macro-crate 1.1.2",
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
-name = "opu_macro_utils"
-version = "0.1.0"
-dependencies = [
- "console 0.14.1",
- "dialoguer",
- "indicatif",
 ]
 
 [[package]]

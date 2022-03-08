@@ -6,8 +6,8 @@ edition = "2021"
 
 [features]
 default = []
-gui = ["opu-macros/gui", "opu_macro_utils/gui"]
-cli = ["opu-macros/cli", "opu_macro_utils/cli"]
+gui = ["fruid/iced"]
+cli = ["fruid/cli"]
 
 
 [dependencies]
@@ -22,7 +22,6 @@ serde_json = "1.0"
 directories = "4.0.1"
 thiserror = "1.0.25"
 memchr = "2.4.1"
-opu-macros = {path = "../macros"}
-opu_macro_utils = {path = "../macro-utils"}
 num = "0.4.0"
 bounded-integer = { version="0.5.1", features=["macro"] }
+fruid = { path = "../../fruid" }

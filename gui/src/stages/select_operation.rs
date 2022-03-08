@@ -55,6 +55,14 @@ impl TryFrom<&mut super::Load> for NewStage<SelectOperation> {
     }
 }
 
+impl TryFrom<&mut super::Save> for NewStage<SelectOperation> {
+    type Error = String;
+
+    fn try_from(prev: &mut super::Save) -> Result<Self, Self::Error> {
+        Ok((SelectOperation::new(prev.config.clone()), Command::none()))
+    }
+}
+
 impl Stage for SelectOperation {
     type Application = crate::OPU;
     type Message = Message;

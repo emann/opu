@@ -16,9 +16,9 @@ use crate::metadata::mixer_settings::MixerSettings;
 use crate::metadata::tempo_settings::TempoSettings;
 use crate::op1::dirs::OP1Dirs;
 use crate::op1::OP1;
+use fruid::FromCLIInput;
 use fs_extra::dir::create_all;
 use include_flate::flate;
-use opu_macros::FromCLIInput;
 
 flate!(static BASE_METADATA_FILE_BYTES: [u8] from "assets/opu_metadata.aif");
 

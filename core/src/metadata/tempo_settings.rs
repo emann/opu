@@ -1,5 +1,4 @@
-use num::traits::Bounded;
-use opu_macros::FromCLIInput;
+use fruid::FromCLIInput;
 use serde::{Deserialize, Serialize};
 
 #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, FromCLIInput)]

@@ -38,6 +38,21 @@ impl OP1 {
     }
 
     pub async fn get_connected_op1() -> OP1 {
+        #[cfg(debug_assertions)]
+        {
+            use std::env;
+            if let Ok(path_str) = env::var("DUMMY_OP1_PATH") {
+                let path: PathBuf = path_str.into();
+                println!("Creating/using dummy OP-1 at {:?}", path);
+                create_dir_all(path.join("album"));
+                create_dir_all(path.join("drum"));
+                create_dir_all(path.join("synth"));
+                create_dir_all(path.join("tape"));
+                return OP1::try_from(path)
+                    .expect("The value of the DUMMY_OP1_PATH must be a valid path");
+            }
+        }
+
         let mut op1 = OP1::find_connected();
         while let None = op1 {
             tokio::time::sleep(time::Duration::from_millis(100)).await;

@@ -12,9 +12,8 @@ color-eyre = "0.5.11"
 console = "0.14.1"
 dialoguer = "0.8.0"
 opu-core = {path = "../core"}
-opu-macros = {path = "../macros"}
-opu_macro_utils = {path = "../macro-utils"}
 indicatif = "0.16.2"
 fs_extra = "1.2.0"
 tokio = {version="1.16.1", features=["macros"]}
 serde = {version="1.0.136", features=["derive"]}
+fruid = { path = "../../fruid", features=["cli"] }

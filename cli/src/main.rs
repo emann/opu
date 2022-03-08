@@ -10,11 +10,10 @@ use indicatif::{ProgressBar, ProgressStyle};
 
 use crate::config::Config;
 use commands::COMMANDS;
+use fruid::FromCLIInput;
 use opu_core::metadata::Metadata;
 use opu_core::op1::OP1;
 use opu_core::OPUConfig;
-use opu_macro_utils::FromCLIInput;
-use opu_macros::FromCLIInput;
 use prompt::unwrap_and_validate_or_prompt_select;
 
 mod commands;
