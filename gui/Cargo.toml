@@ -5,12 +5,12 @@ authors = ["Ethan Mann <emanndev7@gmail.com"]
 edition = "2021"
 
 [dependencies]
-iced = { version = "0.3.0", features = ["tokio"] }
-iced_futures = "0.3.0"
-iced_aw = { git="ssh://git@github.com/iced-rs/iced_aw" , default-features = false, features = ["selection_list"] }
+iced = { git = "https://github.com/iced-rs/iced.git", rev = "b50e208f31e51c2d947aeaf9fea8a9f287f26aa1", features = ["tokio", "pure", "canvas"] }
+iced_native = { git = "https://github.com/iced-rs/iced.git", rev = "b50e208f31e51c2d947aeaf9fea8a9f287f26aa1" }
+iced_lazy = { git = "https://github.com/iced-rs/iced.git", rev = "b50e208f31e51c2d947aeaf9fea8a9f287f26aa1", features = ["pure"] }
+#iced_aw = { git="ssh://git@github.com/iced-rs/iced_aw" , default-features = false, features = ["selection_list"] }
 reqwest = "0.11"
 opu-core = {path = "../core"}
-triax_ui = { version = "0.2", features = ["derive"], git = "ssh://git@github.com/triaxtec/triax-ui-rs", branch = "main" }
 include-flate = "0.1.4"
 dark-light = "0.2.1"
 serde = { version = "1.0.136", features = ["derive"] }

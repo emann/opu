@@ -4,18 +4,22 @@
 #![warn(clippy::complexity)]
 #![warn(clippy::perf)]
 
-use iced::{Application, Command};
+use iced::pure::Element;
+use iced::{Command, Length, Sandbox};
 use include_flate::flate;
 use opu_core::config::OPUConfig;
-use triax_ui::Stage as StageImpl;
 
+use crate::components::wait_for_op1::wait_for_op1;
+use crate::components::Page;
 use crate::config::Config;
+use iced::pure::{container, Application};
+use opu_core::op1::OP1;
 use opu_core::project::Project;
 use std::path::PathBuf;
 
+mod components;
 mod config;
 mod loading;
-mod stages;
 mod style;
 
 flate!(static OP1_FONT_BYTES: [u8] from "assets/op1_font.ttf");
@@ -47,18 +51,40 @@ fn get_scale(_: &Config) -> f64 {
     2.0
 }
 
-triax_ui::triax_application!(
-    impl_main(false);
-    name(OPU);
-    title("OPU");
-    background_color(get_bg)
-    first_stage(stages::WaitForOP1ToBeConnected);
-    stages(
-        stages::WaitForOP1ToBeConnected -> stages::SelectOperation,
-        stages::SelectOperation -> stages::Load,
-        stages::Load -> stages::SelectOperation,
-        stages::SelectOperation -> stages::Save,
-        stages::Save -> stages::SelectOperation
-    );
-    flags(Config, Config::from_file);
-);
+#[derive(Debug)]
+enum Message {
+    OP1Found(OP1),
+}
+
+struct OPU {
+    page: Page<Message>,
+}
+
+impl Application for OPU {
+    type Executor = iced::executor::Default;
+    type Message = Message;
+    type Flags = Config;
+
+    fn new(config: Self::Flags) -> (Self, Command<Self::Message>) {
+        (
+            Self {
+                page: Page::WaitForOP1(wait_for_op1(config, Message::OP1Found)),
+            },
+            Command::none(),
+        )
+    }
+
+    fn title(&self) -> String {
+        format!("OPU - {}", self.page)
+    }
+
+    fn update(&mut self, message: Message) -> Command<Self::Message> {
+        match message {
+            Message::OP1Found(op1) => Command::none(),
+        }
+    }
+
+    fn view(&self) -> Element<'_, Self::Message> {
+        container(self.page.view()).into()
+    }
+}

@@ -13,6 +13,7 @@ use crate::project::Project;
 
 pub mod dirs;
 
+#[derive(Debug)]
 pub struct OP1 {
     pub op1_dirs: OP1Dirs,
 }
