@@ -3,7 +3,8 @@ pub mod wait_for_op1;
 
 use crate::components::wait_for_op1::Event;
 use iced::pure::widget::Element;
-use iced_lazy::pure::Component;
+use iced_lazy::pure::{self, Component};
+use iced_native::text;
 use std::fmt::{Display, Formatter};
 pub use wait_for_op1::WaitForOP1;
 
@@ -13,11 +14,27 @@ pub enum Page<Message> {
     Save,
 }
 
-impl<'a, Message> Page<Message> {
-    fn view(&self) -> Element<'a, Message, _> {
-        match self {
-            Page::WaitForOP1(p) => p.view(),
-            _ => panic!("AH"),
+// impl<Message> Page<Message> {
+//     fn view<Renderer>(&self) -> Element<'_, Message, Renderer>
+//     where
+//         Renderer: 'static + iced_native::text::Renderer,
+//     {
+//         match self {
+//             Page::WaitForOP1(op1) => op1.view(&()),
+//             _ => panic!("panik"),
+//         }
+//     }
+// }
+
+impl<'a, Message, Renderer> From<Page<Message>> for Element<'a, Message, Renderer>
+where
+    Renderer: 'static + iced_native::text::Renderer,
+    Message: 'a,
+{
+    fn from(page: Page<Message>) -> Element<'a, Message, Renderer> {
+        match page {
+            Page::WaitForOP1(op1) => pure::component(op1),
+            _ => panic!("panik"),
         }
     }
 }

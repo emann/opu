@@ -57,6 +57,7 @@ enum Message {
 }
 
 struct OPU {
+    config: Config,
     page: Page<Message>,
 }
 
@@ -68,6 +69,7 @@ impl Application for OPU {
     fn new(config: Self::Flags) -> (Self, Command<Self::Message>) {
         (
             Self {
+                config: config.clone(),
                 page: Page::WaitForOP1(wait_for_op1(config, Message::OP1Found)),
             },
             Command::none(),
@@ -85,6 +87,10 @@ impl Application for OPU {
     }
 
     fn view(&self) -> Element<'_, Self::Message> {
-        container(self.page.view()).into()
+        container(wait_for_op1(self.config.clone(), Message::OP1Found))
+            .padding(20)
+            .height(Length::Fill)
+            .center_y()
+            .into()
     }
 }
