@@ -11,7 +11,7 @@ use opu_core::config::OPUConfig;
 
 use crate::components::select_operation::select_operation;
 use crate::components::wait_for_op1::wait_for_op1;
-use crate::components::Page;
+use crate::components::{Operation, Page, SelectOperationContext, WaitForOP1Context};
 use crate::config::Config;
 use iced::pure::{container, Application};
 use opu_core::op1::OP1;
@@ -55,10 +55,12 @@ fn get_scale(_: &Config) -> f64 {
 #[derive(Debug)]
 enum Message {
     OP1Found(OP1),
+    OperationSelected(Operation),
 }
 
 struct OPU {
     config: Config,
+    op1: Option<OP1>,
     page: Page<Message>,
 }
 
@@ -71,9 +73,13 @@ impl Application for OPU {
         (
             Self {
                 config: config.clone(),
-                page: Page::WaitForOP1(wait_for_op1(config, Message::OP1Found)),
+                op1: None,
+                page: Page::WaitForOP1(WaitForOP1Context {
+                    config,
+                    on_op1_found: Box::new(Message::OP1Found),
+                }),
             },
-            Command::none(),
+            Command::perform(OP1::get_connected_op1(), Message::OP1Found),
         )
     }
 
@@ -82,20 +88,25 @@ impl Application for OPU {
     }
 
     fn update(&mut self, message: Message) -> Command<Self::Message> {
+        println!("{:?}", message);
         match message {
             Message::OP1Found(op1) => {
-                self.page = Page::SelectOperation(select_operation(
-                    self.config.clone(),
-                    op1,
-                    Message::OP1Found,
-                ));
+                self.op1 = Some(op1);
+                self.page = Page::SelectOperation(SelectOperationContext {
+                    config: self.config.clone(),
+                    on_operation_selected: Box::new(Message::OperationSelected),
+                });
+                Command::none()
+            }
+            Message::OperationSelected(operation) => {
+                println!("Page change! {:?}", operation);
                 Command::none()
             }
         }
     }
 
     fn view(&self) -> Element<'_, Self::Message> {
-        container(wait_for_op1(self.config.clone(), Message::OP1Found))
+        container(self.page.component())
             .padding(20)
             .height(Length::Fill)
             .center_y()
