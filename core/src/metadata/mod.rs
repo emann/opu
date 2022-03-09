@@ -58,9 +58,9 @@ pub struct Metadata {
     #[from_cli_input(skip_prompt_and_use_default = true, default = "Local::now()")]
     pub last_saved: DateTime<Local>,
     #[from_cli_input(prompt = "=== Tempo Settings === ")]
-    tempo_settings: TempoSettings,
+    pub tempo_settings: TempoSettings,
     #[from_cli_input(prompt = "=== Mixer Settings === ")]
-    mixer_settings: MixerSettings,
+    pub mixer_settings: MixerSettings,
 }
 
 impl Metadata {
@@ -87,6 +87,10 @@ impl Metadata {
     //         Default::default(),
     //     )
     // }
+
+    pub fn created(&self) -> DateTime<Local> {
+        return self.created;
+    }
 
     pub fn get_file_path<P>(project_parent_dir: P) -> PathBuf
     where

@@ -519,6 +519,21 @@ dependencies = [
 
 [[package]]
 name = "console"
+version = "0.14.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3993e6445baa160675931ec041a5e03ca84b9c6e32a056150d3aa2bdda0a1f45"
+dependencies = [
+ "encode_unicode",
+ "lazy_static",
+ "libc",
+ "regex",
+ "terminal_size",
+ "unicode-width",
+ "winapi 0.3.9",
+]
+
+[[package]]
+name = "console"
 version = "0.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a28b32d32ca44b70c3e4acd7db1babf555fa026e385fb95f18028f88848b3c31"
@@ -778,11 +793,23 @@ checksum = "21d8ad60dd5b13a4ee6bd8fa2d5d88965c597c67bce32b5fc49c94f55cb50810"
 
 [[package]]
 name = "dialoguer"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c9dd058f8b65922819fabb4a41e7d1964e56344042c26efbccd465202c23fa0c"
+dependencies = [
+ "console 0.14.1",
+ "lazy_static",
+ "tempfile",
+ "zeroize",
+]
+
+[[package]]
+name = "dialoguer"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "349d6b4fabcd9e97e1df1ae15395ac7e49fb144946a0d453959dc2696273b9da"
 dependencies = [
- "console",
+ "console 0.15.0",
  "tempfile",
  "zeroize",
 ]
@@ -1129,15 +1156,16 @@ dependencies = [
 name = "fruid_cli"
 version = "0.0.1"
 dependencies = [
- "console",
- "dialoguer",
- "indicatif",
+ "console 0.14.1",
+ "dialoguer 0.8.0",
+ "indicatif 0.16.2",
 ]
 
 [[package]]
 name = "fruid_macros"
 version = "0.1.0"
 dependencies = [
+ "fruid_cli",
  "itertools",
  "log",
  "proc-macro-crate 1.1.2",
@@ -1896,11 +1924,23 @@ dependencies = [
 
 [[package]]
 name = "indicatif"
+version = "0.16.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2d207dc617c7a380ab07ff572a6e52fa202a2a8f355860ac9c38e23f8196be1b"
+dependencies = [
+ "console 0.15.0",
+ "lazy_static",
+ "number_prefix",
+ "regex",
+]
+
+[[package]]
+name = "indicatif"
 version = "0.17.0-rc.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2946516aa80379c1e6ee9cfa75a7b2faf23f63690f44d682e7fecd0141bbcaf2"
 dependencies = [
- "console",
+ "console 0.15.0",
  "number_prefix",
  "unicode-width",
 ]
@@ -2650,11 +2690,11 @@ version = "0.1.0"
 dependencies = [
  "clap",
  "color-eyre",
- "console",
- "dialoguer",
+ "console 0.15.0",
+ "dialoguer 0.10.0",
  "fruid",
  "fs_extra",
- "indicatif",
+ "indicatif 0.17.0-rc.6",
  "opu-core",
  "serde",
  "tokio",
