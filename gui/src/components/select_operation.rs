@@ -59,25 +59,6 @@ where
                     .push(button(text("Settings")).on_press(Operation::Load)),
             )
             .into()
-
-        // column()
-        //     .padding(20)
-        //     .align_items(Alignment::Center)
-        //     // .push(button(text("Save")).on_press(Operation::Save))
-        //     // .push(button(text("Load")).on_press(Operation::Load))
-        //     .into()
-
-        // column()
-        //     .padding(20)
-        //     .align_items(Alignment::Center)
-        //     .push(
-        //         text(String::from("Waiting for OP-1 to be connected"))
-        //             .size(50)
-        //             .color(self.context.config.theme().text_color()),
-        //     )
-        //     .push(button(text("button")).on_press(Operation::Save))
-        //     // .push(loading)
-        //     .into()
     }
 }
 

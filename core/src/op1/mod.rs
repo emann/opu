@@ -12,6 +12,9 @@ use crate::op1::dirs::{Error as OP1DirsError, OP1Dirs};
 use crate::project::Project;
 
 pub mod dirs;
+mod effect;
+
+pub use effect::Effect;
 
 #[derive(Debug)]
 pub struct OP1 {
@@ -42,9 +45,9 @@ impl OP1 {
         #[cfg(debug_assertions)]
         {
             use std::env;
-            if let Ok(path_str) = env::var("DUMMY_OP1_PATH") {
-                let path: PathBuf = path_str.into();
-                println!("Creating/using dummy OP-1 at {:?}", path);
+            if let Ok(_path_str) = env::var("DUMMY_OP1_PATH") {
+                let path: PathBuf = std::env::current_dir().unwrap().join("mock_op1");
+                println!("Creating/using mocked OP-1 at {:?}", path);
                 create_dir_all(path.join("album"));
                 create_dir_all(path.join("drum"));
                 create_dir_all(path.join("synth"));

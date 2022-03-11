@@ -7,12 +7,12 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+opu-core = {path = "../core"}
 clap = {version = "3.0.12", features=["derive"]}
 color-eyre = "0.5.11"
 console = "0.15.0"
 dialoguer = {version = "0.10.0", default-features = false}
 indicatif = "0.17.0-rc.6"
-opu-core = {path = "../core"}
 fs_extra = "1.2.0"
 tokio = {version="1.16.1", features=["macros"]}
 serde = {version="1.0.136", features=["derive"]}

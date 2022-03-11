@@ -12,7 +12,7 @@ pub use wait_for_op1::Context as WaitForOP1Context;
 use select_operation::select_operation;
 use wait_for_op1::wait_for_op1;
 
-mod operations;
+pub mod operations;
 pub mod select_operation;
 pub mod wait_for_op1;
 
